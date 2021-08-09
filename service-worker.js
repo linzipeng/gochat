@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "precache-manifest.89802bb70a17f455237c016c0bae352f.js"
+  "precache-manifest.11777dc4b49e44d98b999f367b57ea71.js"
 );
 
 workbox.core.setCacheNameDetails({prefix: "gochat"});
