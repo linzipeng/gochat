@@ -65,7 +65,7 @@ export default defineComponent({
   setup(props, rtx) {
     const store = useStore<MainStore>();
     const deviceList = ref<ZegoDeviceInfo[]>([]);
-    const errMsg = ref(""); // 错误信息登记
+    const errMsg = ref("系统未授权使用摄像头"); // 错误信息登记
     const preCamera = ref<HTMLVideoElement | null>(null);
     const previewCamera = ref<MediaStream | null>(null);
     const currentDevice = ref<ZegoDeviceInfo>({

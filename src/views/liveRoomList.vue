@@ -44,8 +44,7 @@
     <el-main class="room-card-container">
       <template v-if="roomList?.length > 0">
         <div class="playing-tag">
-          <icon name="icon_camrea"></icon>
-          <i class="iconfont icon-litte-micro" />
+          <icon name="icon_camrea" class="playing-icon"></icon>
           <span>正在直播</span>
         </div>
         <div class="room-cards">
@@ -67,7 +66,7 @@
               <p class="subject">{{ room.subject }}</p>
               <div class="room-number">
                 <div>
-                  <icon name="icon_people"></icon>
+                  <icon name="icon_people" class="room-person"></icon>
                   <span>{{ room.online_count }}</span>
                 </div>
                 <div class="goto-look">去观看 ></div>
@@ -153,7 +152,7 @@ export default defineComponent({
         if (uid !== 0) {
           getRoomList(uid)
             .then((data) => {
-              roomList.value = data.reverse();
+              roomList.value = data;
             })
             .finally(() => {
               stopWatchLogin();
@@ -274,6 +273,18 @@ export default defineComponent({
     margin-top: 10px;
     opacity: 0.5;
   }
+}
+
+.playing-icon {
+  width: 18px;
+  height: 17px;
+  margin-right: 10px;
+}
+
+.room-person {
+  width: 10px;
+  height: 10px;
+  margin-right: 4px;
 }
 
 .room-list {

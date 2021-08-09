@@ -75,7 +75,7 @@ export default defineComponent({
   setup(props, rtx) {
     const store = useStore<MainStore>();
     const deviceList = ref<ZegoDeviceInfo[]>([]);
-    const errMsg = ref(""); // 错误信息登记
+    const errMsg = ref("系统未授权使用麦克风"); // 错误信息登记
     const previewAudio = ref<HTMLAudioElement | null>(null);
     const previewMic = ref<MediaStream | null>(null);
     const currentDevice = ref<ZegoDeviceInfo>({

@@ -86,7 +86,7 @@ export default defineComponent({
     const speakerRealVolume = ref(0);
     const store = useStore<MainStore>();
     const deviceList = ref<ZegoDeviceInfo[]>([]);
-    const errMsg = ref(""); // 错误信息登记
+    const errMsg = ref("未检测到扬声器设备"); // 错误信息登记
     let speakerAudio: any;
     const currentDevice = ref<ZegoDeviceInfo>({
       deviceName: "",
