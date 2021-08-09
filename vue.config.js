@@ -7,15 +7,6 @@ module.exports = {
     port: 8989,
     disableHostCheck: true,
     https: true,
-    proxy: {
-      "/": {
-        target: "https://gochat-server-sh.zego.im/", // 正式环境
-        changeOrigin: true, // 如果接口跨域，需要进行这个参数配置为true
-        pathRewrite: {
-          "^/": "/", // rewrite path
-        },
-      },
-    },
   },
   productionSourceMap: false,
   pwa: {

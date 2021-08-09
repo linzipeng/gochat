@@ -10,6 +10,7 @@ let NET_ERROR = false; // 是否展示网络错误
 
 const config = {
   timeout: 30 * 1000,
+  baseURL: "https://gochat-server-sh.zego.im/",
 };
 
 function showErrorTips(message: string | undefined, title: string | undefined) {
@@ -30,7 +31,6 @@ interface RSPConfig extends AxiosRequestConfig {
 
 axiosInstance.interceptors.request.use(
   function (config) {
-    config.headers.keepalive = true;
     return config;
   },
   function (error) {
