@@ -110,9 +110,11 @@ export default defineComponent({
               confirmButtonClass: `zg-button small-button`,
               confirmButtonText: "创建直播",
               inputPlaceholder: "请输入直播间名称",
+              inputValue: `${store.state.user.nick_name}的直播间`,
               inputValidator(value) {
                 if (value.length > 15) {
-                  value = value.slice(0, 15);
+                  const input = document.querySelector(".create-room-message .el-input input") as HTMLInputElement;
+                  input.value = value.substring(0, 15);
                 }
                 const btn = document.querySelector(
                   ".create-room-message .zg-button"
