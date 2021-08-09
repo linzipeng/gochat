@@ -1,7 +1,7 @@
 const CompressionPlugin = require("compression-webpack-plugin");
 
 module.exports = {
-  publicPath: "/",
+  publicPath: "./",
   devServer: {
     sockHost: "http://localhost:8080/",
     port: 8989,
