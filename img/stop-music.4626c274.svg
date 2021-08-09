@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="28px" height="28px" viewBox="0 0 28 28" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>icon_normal_zanting</title>
+    <g id="互动直播" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="图标" transform="translate(-395.000000, -880.000000)">
+            <g id="icon_normal_zanting" transform="translate(395.000000, 880.000000)">
+                <g id="编组-18备份">
+                    <circle id="椭圆形" fill="#FFFFFF" opacity="0.100000001" cx="14" cy="14" r="14"></circle>
+                    <circle id="椭圆形" fill="#FFFFFF" opacity="0.200000003" cx="14" cy="14" r="11.8461538"></circle>
+                    <circle id="椭圆形" fill="#E0DDE3" opacity="0.800000012" cx="14" cy="14" r="9.69230769"></circle>
+                </g>
+                <g id="编组-18" transform="translate(10.500000, 10.500000)" fill="#2C253C">
+                    <rect id="矩形" x="0" y="0" width="2" height="7"></rect>
+                    <rect id="矩形备份-2" x="5" y="0" width="2" height="7"></rect>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
