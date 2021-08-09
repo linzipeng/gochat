@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="28px" height="28px" viewBox="0 0 28 28" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>暂停备份 2</title>
+    <g id="互动直播" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="房间页-主播端-扬声器检测备份" transform="translate(-490.000000, -452.000000)">
+            <g id="编组-21" transform="translate(440.000000, 197.000000)">
+                <g id="编组-18备份" transform="translate(50.000000, 255.000000)">
+                    <circle id="椭圆形" fill="#FFFFFF" opacity="0.149999991" cx="14" cy="14" r="14"></circle>
+                    <circle id="椭圆形" fill="#FFFFFF" opacity="0.25" cx="14" cy="14" r="11.8461538"></circle>
+                    <circle id="椭圆形" fill="#E0DDE3" cx="14" cy="14" r="9.69230769"></circle>
+                    <path d="M14.8660254,10.5 L17.4641016,15 C17.740244,15.4782926 17.5763688,16.089883 17.0980762,16.3660254 C16.946057,16.4537937 16.7736129,16.5 16.5980762,16.5 L11.4019238,16.5 C10.849639,16.5 10.4019238,16.0522847 10.4019238,15.5 C10.4019238,15.3244633 10.4481301,15.1520192 10.5358984,15 L13.1339746,10.5 C13.410117,10.0217074 14.0217074,9.85783222 14.5,10.1339746 C14.6520192,10.2217429 14.7782571,10.3479808 14.8660254,10.5 Z" id="多边形" fill="#9F76FF" transform="translate(14.000000, 14.000000) rotate(-270.000000) translate(-14.000000, -14.000000) "></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="276px" height="80px" viewBox="0 0 276 80" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>icon_card</title>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="276" height="80"></rect>
+        <filter x="-77.6%" y="-77.6%" width="255.2%" height="255.2%" filterUnits="objectBoundingBox" id="filter-3">
+            <feGaussianBlur stdDeviation="30" in="SourceGraphic"></feGaussianBlur>
+        </filter>
+    </defs>
+    <g id="互动直播" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="直播间列表" transform="translate(-120.000000, -325.000000)">
+            <g id="房间1" transform="translate(120.000000, 145.000000)">
+                <g id="icon_card" transform="translate(0.000000, 180.000000)">
+                    <mask id="mask-2" fill="white">
+                        <use xlink:href="#path-1"></use>
+                    </mask>
+                    <use id="蒙版" fill="#302449" xlink:href="#path-1"></use>
+                    <circle id="椭圆形" fill="#7F2D78" opacity="0.5" filter="url(#filter-3)" mask="url(#mask-2)" cx="5" cy="96" r="58"></circle>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
