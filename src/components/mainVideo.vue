@@ -54,6 +54,7 @@
         isAnchorVideo && { height: '100%', width: '100%', position: 'inherit' }
       "
       autoplay
+      :muted="$store.state.user.uid.toString() === streamId"
       playsinline
     ></video>
     <template v-else>
@@ -240,7 +241,7 @@ export default defineComponent({
                   qualityState.value.frames = `${stats.video.frameWidth} × ${stats.video.frameHeight} p`;
                   qualityState.value.bitrate = `${(
                     stats.video.videoBitrate + stats.audio.audioBitrate
-                  ).toFixed(0)} ms`;
+                  ).toFixed(0)} kbs`;
                   qualityState.value.FPS = `${stats.video.videoFPS.toFixed(
                     0
                   )} fps`;
