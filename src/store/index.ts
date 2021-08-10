@@ -30,6 +30,7 @@ const initState: MainStore = {
     deviceName: "",
     volume: 50,
   },
+  browserIsSupport: true,
 };
 
 export default createStore<MainStore>({

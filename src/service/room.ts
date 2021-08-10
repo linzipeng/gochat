@@ -8,13 +8,19 @@ export const createRoom = function (
   uid: number,
   subject = "默认房间名"
 ): Promise<Room> {
-  return new Promise((resolve) => {
-    api("createRoom", { uid, subject }).then(({ ret, data }: RSP) => {
-      if (ret && ret.code === 0) {
-        console.log("创建房间成功！", data);
-        resolve(data);
-      }
-    });
+  return new Promise((resolve, reject) => {
+    api("createRoom", { uid, subject })
+      .then(({ ret, data }: RSP) => {
+        if (ret && ret.code === 0) {
+          console.log("创建房间成功！", data);
+          resolve(data);
+        } else {
+          reject();
+        }
+      })
+      .catch(() => {
+        reject();
+      });
   });
 };
 

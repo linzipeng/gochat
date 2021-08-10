@@ -18,6 +18,7 @@ export default defineComponent({
     const store = useStore<MainStore>();
     checkSystemRequirements().then((result) => {
       if (!result) {
+        store.commit("setter", { key: "browserIsSupport", value: false });
         ElMessageBox({
           title: "浏览器不支持",
           message:

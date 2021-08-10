@@ -100,6 +100,27 @@ export default defineComponent({
 
     // 跳转到直播界面
     const gotoLiveRoom = function (room?: Room) {
+      if (!store.state.browserIsSupport) {
+        ElMessageBox({
+          title: "浏览器不支持",
+          message:
+            "您当前的浏览器不符合直播间要求，为获得更好的直播体验，请安装最新版本的 Chrome 浏览器",
+          center: true,
+          showClose: false,
+          closeOnClickModal: false,
+          showCancelButton: true,
+          showConfirmButton: true,
+          customClass: "message-box",
+          cancelButtonText: "我知道了",
+          confirmButtonText: "去下载",
+          cancelButtonClass: "message-cancel-btn border-radius-5 ",
+          confirmButtonClass: "zg-button small-button border-radius-5 ",
+        }).then(() => {
+          window.open("https://oomake.com/download/chrome", "_blank");
+        });
+        return;
+      }
+
       if (store.state.user.uid) {
         if (store.state.token) {
           if (!room) {
@@ -113,7 +134,9 @@ export default defineComponent({
               inputValue: `${store.state.user.nick_name}的直播间`,
               inputValidator(value) {
                 if (value.length > 15) {
-                  const input = document.querySelector(".create-room-message .el-input input") as HTMLInputElement;
+                  const input = document.querySelector(
+                    ".create-room-message .el-input input"
+                  ) as HTMLInputElement;
                   input.value = value.substring(0, 15);
                 }
                 const btn = document.querySelector(
@@ -123,10 +146,18 @@ export default defineComponent({
                 return !!value;
               },
             }).then(({ value }) => {
-              createRoom(store.state.user.uid, value).then((data) => {
-                store.commit("setter", { key: "room", value: data });
-                router.push({ path: `/liveRoom/${data.room_id}` });
-              });
+              createRoom(store.state.user.uid, value)
+                .then((data) => {
+                  store.commit("setter", { key: "room", value: data });
+                  router.push({ path: `/liveRoom/${data.room_id}` });
+                })
+                .catch(() => {
+                  ElMessage({
+                    showClose: false,
+                    customClass: "alert-box",
+                    message: "创建失败，请重试",
+                  });
+                });
             });
           } else {
             store.commit("setter", { key: "room", value: room });
@@ -134,6 +165,7 @@ export default defineComponent({
           }
         } else {
           ElMessage({
+            showClose: false,
             customClass: "alert-box",
             message: "用户账号token异常！稍后重试！",
           });

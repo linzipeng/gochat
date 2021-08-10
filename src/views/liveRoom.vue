@@ -147,7 +147,8 @@
       @show="showMediaSetting = false"
     ></media-setting>
     <music-setting
-      v-if="isAnchor && music"
+      v-if="isAnchor"
+      v-show="music"
       @close="music = false"
       :streamId="anchorStreamId"
     ></music-setting>

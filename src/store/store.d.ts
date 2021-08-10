@@ -19,4 +19,5 @@ export interface MainStore {
   token: string;
   cameraConfig: CameraConfig;
   speakerDevice: SpeakerConfig;
+  browserIsSupport: boolean;
 }
