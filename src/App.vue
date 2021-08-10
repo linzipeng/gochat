@@ -78,6 +78,21 @@ body {
   user-select: none;
 }
 
+::-webkit-scrollbar {
+  background-color: #1D142E;
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-corner {
+  background-color: #1D142E;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #82798F;
+  border-radius: 5px;
+}
+
 #app,
 #nav {
   width: 100%;
@@ -221,8 +236,10 @@ body {
     border: none !important;
     background: rgba(255, 255, 255, 0.1) !important;
     box-shadow: 0px 6px 10px 0px rgba(0, 0, 0, 0.3) !important;
+    color: #E0DDE3;
     &:hover {
-      color: #9f76ff !important;
+      opacity: 0.8;
+      color: #E0DDE3;
     }
   }
   .border-radius-5 {

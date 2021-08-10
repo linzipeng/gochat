@@ -36,7 +36,7 @@ export default defineComponent({
 .icon {
   width: 1.572em;
   height: 1.572em;
-  fill: #E0DDE3;
+  fill: currentColor;
   overflow: hidden;
   vertical-align: middle;
   user-select: none;

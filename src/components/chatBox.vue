@@ -46,10 +46,12 @@
         <el-input
           class="chat-input"
           type="textarea"
-          :rows="8"
+          :rows="7"
           resize="none"
           :maxlength="30"
           placeholder="说点什么呢..."
+          @focus="(event) => placeholder(event.target, '')"
+          @blur="(event) => placeholder(event.target, '说点什么呢...')"
           v-model="chatArea"
         >
         </el-input>
@@ -255,6 +257,12 @@ export default defineComponent({
       dom?.scrollTo(0, Number.MAX_SAFE_INTEGER);
     };
 
+    const placeholder = function (textArea: HTMLTextAreaElement, msg: string) {
+      if (textArea) {
+        textArea.placeholder = msg;
+      }
+    };
+
     const onCallBack = function () {
       zg.on("IMRecvBroadcastMessage", (roomID, messageInfoList) => {
         if (routeParams.roomId === roomID) {
@@ -299,14 +307,16 @@ export default defineComponent({
                           ElMessageBox.confirm(
                             `${user.nick_name} 申请与你连麦`,
                             "申请连麦",
-                            { 
+                            {
                               customClass: "message-box",
                               confirmButtonText: "同意",
                               cancelButtonText: "拒绝",
                               center: true,
                               showClose: false,
-                              cancelButtonClass: "message-cancel-btn border-radius-5 ",
-                              confirmButtonClass: "zg-button small-button border-radius-5 ",
+                              cancelButtonClass:
+                                "message-cancel-btn border-radius-5 ",
+                              confirmButtonClass:
+                                "zg-button small-button border-radius-5 ",
                             }
                           )
                             .then(() => {
@@ -442,8 +452,10 @@ export default defineComponent({
                         center: true,
                         showClose: false,
                         customClass: "message-box",
-                        cancelButtonClass: "message-cancel-btn border-radius-5 ",
-                        confirmButtonClass: "zg-button small-button border-radius-5 ",
+                        cancelButtonClass:
+                          "message-cancel-btn border-radius-5 ",
+                        confirmButtonClass:
+                          "zg-button small-button border-radius-5 ",
                       }
                     )
                       .then(() => {
@@ -541,6 +553,7 @@ export default defineComponent({
       inviteList,
       invite,
       sendMessage,
+      placeholder,
     };
   },
 });
@@ -611,13 +624,15 @@ export default defineComponent({
       .chat-message {
         overflow-y: scroll;
         height: calc(100% - 160px);
-        margin-right: -15px;
+        &::-webkit-scrollbar {
+          background-color: #2b1e3b;
+        }
         .whole-message {
           padding: 12px 16px;
           .anthor-tab {
             width: 28px;
             height: 14px;
-            background: #a653ff;
+            background: #6e5bff;
             border-radius: 2px;
             color: white;
             height: 15px;
@@ -630,6 +645,7 @@ export default defineComponent({
             line-height: 14px;
             height: 14px;
             padding: 10px 0;
+            color: #aca5b4;
           }
           .message-content {
             background: rgba(255, 255, 255, 0.05);
@@ -651,7 +667,7 @@ export default defineComponent({
             color: #8be7ff;
           }
           .traffic-message {
-            color: #aca5b4;
+            color: #82798f;
           }
         }
       }
@@ -661,6 +677,10 @@ export default defineComponent({
           border: 0px;
           border-top: 1px solid #1d142e;
           border-radius: 0;
+          color: #e0dde3;
+          &::placeholder {
+            color: #82798f;
+          }
         }
       }
     }
@@ -673,7 +693,7 @@ export default defineComponent({
     right: 14px;
     bottom: 14px;
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
+    border-radius: 44px;
     i {
       width: 33px;
       height: 29px;
@@ -686,9 +706,13 @@ export default defineComponent({
     .disabled-btn {
       background: url("../assets/mediaicon/disabled-chat-btn.svg") no-repeat
         center;
+      cursor: not-allowed;
     }
     .abled-btn {
       background: url("../assets/mediaicon/abled-chat-btn.svg") no-repeat center;
+    }
+    &:hover {
+      opacity: 0.8;
     }
   }
 }

@@ -30,7 +30,7 @@
         ></icon>
         <span
           class="room-operation"
-          :class="isPlaying ? 'close-anchor' : 'start-anchor '"
+          :class="isPlaying ? 'close-anchor' : 'zg-button start-anchor'"
           v-if="isAnchor"
           @click="publishStream()"
         >
@@ -84,7 +84,7 @@
               "
             ></icon
             ><br />
-            <span>摄像头</span>
+            <div>摄像头</div>
           </div>
           <div
             class="operation"
@@ -99,15 +99,19 @@
               "
             ></icon
             ><br />
-            <span>麦克风</span>
+            <div>麦克风</div>
           </div>
           <div
             class="operation"
             v-if="isAnchor && !showEquipmentCheck"
             @click="updateMedia('music')"
           >
-            <icon name="icon_setting_music"></icon><br />
-            <span>背景音</span>
+            <icon
+              name="icon_setting_music"
+              style="transform: scale(0.8)"
+            ></icon
+            ><br />
+            <div>背景音</div>
           </div>
           <template v-if="!isAnchor">
             <span
@@ -418,8 +422,23 @@ export default defineComponent({
             isPlaying.value = true;
           }
         } else {
-          destroyStream(false);
-          router.push({ path: "/" });
+          ElMessageBox({
+            title: "结束直播",
+            message: "结束直播后，该房间将会解散",
+            center: true,
+            showClose: false,
+            closeOnClickModal: false,
+            showCancelButton: true,
+            showConfirmButton: true,
+            customClass: "message-box",
+            cancelButtonText: "取消",
+            confirmButtonText: "确定",
+            cancelButtonClass: "message-cancel-btn border-radius-5 ",
+            confirmButtonClass: "zg-button small-button border-radius-5 ",
+          }).then(() => {
+            destroyStream(false);
+            router.push({ path: "/" });
+          });
         }
       }
     };
@@ -594,7 +613,9 @@ export default defineComponent({
   width: 100%;
   height: 100%;
   padding: 16px;
-  color: #aca5b4;
+  color: #E0DDE3;
+  min-width: 1000px;
+  min-height: 600px;
 
   .live-room-header {
     display: flex;
@@ -616,12 +637,14 @@ export default defineComponent({
     .start-anchor {
       color: white;
       padding: 4px 19px;
-      background: linear-gradient(126deg, #a754ff 0%, #510df1 100%);
     }
     .close-anchor {
       color: #ff4a50;
       padding: 4px 19px;
       background: rgba(255, 74, 80, 0.2);
+      &:hover {
+        opacity: 0.8;
+      }
     }
   }
   .room-operation {
@@ -677,6 +700,9 @@ export default defineComponent({
         svg {
           width: 30px;
           height: 30px;
+        }
+        div {
+          transform: scale(0.8);
         }
       }
     }

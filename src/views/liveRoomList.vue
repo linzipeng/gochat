@@ -28,7 +28,7 @@
         <el-dropdown trigger="click" @command="handleCommand">
           <icon
             name="icon_about_normal"
-            style="margin-right: 10px"
+            class="about-icon"
             :isButton="true"
             v-popover:about-popover
           ></icon>
@@ -321,6 +321,11 @@ export default defineComponent({
     background: url("../assets/mediaicon/icon-feedback-active.svg") no-repeat;
     background-size: cover;
   }
+}
+
+.about-icon {
+  margin-right: 10px;
+  color: #E0DDE3;
 }
 
 .create-room-message {
