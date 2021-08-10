@@ -66,6 +66,7 @@
           <div class="resolution-select">
             <div
               class="resolution-label"
+              :style="!localStream && { cursor: 'not-allowed' }"
               :class="{
                 'is-active':
                   $store.state.cameraConfig.videoQuality === 3 ||
@@ -79,6 +80,7 @@
             </div>
             <div
               class="resolution-label"
+              :style="!localStream && { cursor: 'not-allowed' }"
               :class="{
                 'is-active':
                   $store.state.cameraConfig.videoQuality === 2 ||
@@ -92,6 +94,7 @@
             </div>
             <div
               class="resolution-label"
+              :style="!localStream && { cursor: 'not-allowed' }"
               :class="{
                 'is-active':
                   $store.state.cameraConfig.videoQuality === 1 ||
