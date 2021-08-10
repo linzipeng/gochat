@@ -51,6 +51,7 @@ axiosInstance.interceptors.response.use(
       rspData?.ret.code !== REQ_SUCCESS &&
       !rspConfig.ignoreError
     ) {
+      debugger;
       showErrorTips(
         Object.keys(apiError)?.indexOf(rspData.ret.code?.toString()) !== 0
           ? apiError[rspData.ret.code]

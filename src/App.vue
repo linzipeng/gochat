@@ -109,10 +109,12 @@ body {
   cursor: not-allowed;
   background: linear-gradient(
     126deg,
-    rgba(167, 84, 255, 0.5) 0%,
-    rgba(81, 13, 241, 0.5) 100%
+    rgba(167, 84, 255, 1) 0%,
+    rgba(81, 13, 241, 1) 100%
   ) !important;
   border-radius: 44px;
+  cursor: not-allowed !important;
+  opacity: 0.5;
 }
 
 .zg-button {
@@ -123,6 +125,9 @@ body {
     rgba(167, 84, 255, 1) 0%,
     rgba(81, 13, 241, 1) 100%
   ) !important;
+  &:not(.disabled-zg-button):hover {
+    opacity: 0.8;
+  }
   border-radius: 44px;
 }
 

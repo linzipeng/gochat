@@ -6,12 +6,31 @@
         <span class="room-list-title"> 互动直播</span>
       </div>
       <div>
-        <div class="icon-feedback"></div>
+        <div class="icon-feedback" v-popover:feedback-popover></div>
+        <el-popover
+          ref="feedback-popover"
+          placement="bottom"
+          popper-class="about-popover feedback-popover-position"
+          trigger="hover"
+          :show-arrow="false"
+          content="意见反馈"
+        >
+        </el-popover>
+        <el-popover
+          ref="about-popover"
+          placement="bottom"
+          popper-class="about-popover about-popover-position"
+          trigger="hover"
+          :show-arrow="false"
+          content="关于"
+        >
+        </el-popover>
         <el-dropdown trigger="click" @command="handleCommand">
           <icon
             name="icon_about_normal"
             style="margin-right: 10px"
             :isButton="true"
+            v-popover:about-popover
           ></icon>
           <template v-slot:dropdown>
             <el-dropdown-menu class="about-menu about-positon">
@@ -143,7 +162,14 @@ export default defineComponent({
                 const btn = document.querySelector(
                   ".create-room-message .zg-button"
                 ) as HTMLButtonElement;
-                btn.style.opacity = value ? "1" : "0.5";
+                if (value) {
+                  btn.className = btn.className.replace(
+                    "disabled-zg-button",
+                    ""
+                  );
+                } else {
+                  btn.className = `${btn.className} disabled-zg-button`;
+                }
                 return !!value;
               },
             }).then(({ value }) => {
@@ -233,10 +259,38 @@ export default defineComponent({
   width: 164px;
 }
 
+.about-popover {
+  position: fixed;
+  box-sizing: border-box;
+  padding: 4px 6px !important;
+  font-size: 10px !important;
+  vertical-align: middle;
+  background: #362F46 !important;
+  color: #E0DDE3 !important;
+}
+
+.about-popover-position {
+  top: 55px;
+  right: 128px;
+  min-width: 38px !important;
+  width: 38px !important;
+  height: 22px !important;
+}
+
+.feedback-popover-position {
+  min-width: 62px !important;
+  width: 62px !important;
+  height: 22px !important;
+}
+
 .about-menu {
   background: #2c253c !important;
   .el-dropdown-menu__item {
     font-size: 12px;
+    color: #e0dde3;
+    margin: 0 6px;
+    padding: 0 14px;
+    border-radius: 4px;
   }
   .el-dropdown-menu__item:hover {
     background: rgba(255, 255, 255, 0.05);
@@ -277,9 +331,9 @@ export default defineComponent({
   border-radius: 8px;
   border: none;
   .invalid > input {
-    border-color: inherit !important;
+    border-color: #82798F !important;
     &:focus {
-      border-color: inherit !important;
+      border-color: #82798F !important;
     }
   }
   .el-message-box__errormsg {
@@ -290,10 +344,22 @@ export default defineComponent({
     background-color: transparent;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
+    color: #E0DDE3;
+    &::placeholder {
+      color: #82798F;
+    }
   }
   .el-message-box__header {
     height: 19px;
     border-bottom: 1px solid rgba(121, 120, 125, 0.19);
+    .el-message-box__close {
+      &:hover {
+        color: #9f76ff !important;
+      }
+      &:active {
+        color: white !important;
+      }
+    }
   }
   .el-message-box__title {
     color: #aca5b4;
@@ -311,7 +377,6 @@ export default defineComponent({
     border-radius: 44px;
     height: 40px;
     margin-top: 10px;
-    opacity: 0.5;
   }
 }
 
@@ -408,9 +473,6 @@ export default defineComponent({
           border-top-left-radius: 8px;
           border-top-right-radius: 8px;
           transition: all 0.5s;
-          &:hover {
-            transform: scale(1.4);
-          }
         }
       }
       .room-message {
@@ -445,6 +507,15 @@ export default defineComponent({
             line-height: 24px;
             border: 1px solid rgba(255, 255, 255, 0.1);
           }
+        }
+      }
+
+      &:hover {
+        .room-cover {
+          transform: scale(1.4);
+        }
+        .room-message {
+          box-shadow: 0px 14px 24px -8px rgba(151, 0, 255, 0.3);
         }
       }
     }

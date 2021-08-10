@@ -544,7 +544,7 @@ export default defineComponent({
     onCallBack();
 
     window.onbeforeunload = async function () {
-      await logoutRoom(store.state.user?.uid, routeParams.roomId as string);
+      // await logoutRoom(store.state.user?.uid, routeParams.roomId as string);
     };
 
     onBeforeUnmount(() => {
