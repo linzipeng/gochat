@@ -46,7 +46,8 @@
         <el-input
           class="chat-input"
           type="textarea"
-          :rows="7"
+          :rows="8"
+          resize="none"
           :maxlength="30"
           placeholder="说点什么呢..."
           v-model="chatArea"

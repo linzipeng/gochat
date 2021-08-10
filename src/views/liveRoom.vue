@@ -18,10 +18,12 @@
         <icon
           name="icon_data_normal"
           :isButton="true"
+          v-if="isAnchor"
           @click="showStatus = !showStatus"
         ></icon>
         <icon
           name="a-icon_settingup"
+          v-if="isAnchor"
           :isButton="true"
           class="setting"
           @click="showMediaSetting = !showMediaSetting"
@@ -34,11 +36,7 @@
         >
           {{ isPlaying ? "结束直播" : "开始直播" }}
         </span>
-        <span
-          class="room-operation close-anchor"
-          v-else
-          @click="$router.push({ path: '/' })"
-        >
+        <span class="room-operation close-anchor" v-else @click="quitRoom">
           退出直播间
         </span>
       </div>
@@ -103,7 +101,11 @@
             ><br />
             <span>麦克风</span>
           </div>
-          <div class="operation" v-if="isAnchor" @click="updateMedia('music')">
+          <div
+            class="operation"
+            v-if="isAnchor && !showEquipmentCheck"
+            @click="updateMedia('music')"
+          >
             <icon name="icon_setting_music"></icon><br />
             <span>背景音</span>
           </div>
@@ -254,10 +256,14 @@ export default defineComponent({
         // 停止推流
         zg.stopPublishingStream(store.state.user.uid.toString());
         // 删除流Id
-        audienceStreamId.value.splice(
-          audienceStreamId.value.indexOf(store.state.user.uid.toString()),
-          1
-        );
+        if (isAnchor.value) {
+          isPlaying.value = false;
+        } else {
+          audienceStreamId.value.splice(
+            audienceStreamId.value.indexOf(store.state.user.uid.toString()),
+            1
+          );
+        }
         // 清空本地缓冲流
         zg.destroyStream(localStream.value);
         localStream.value = null;
@@ -412,12 +418,7 @@ export default defineComponent({
             isPlaying.value = true;
           }
         } else {
-          const isSuccess = zg.stopPublishingStream(
-            store.state.user.uid.toString()
-          );
-          if (isSuccess) {
-            isPlaying.value = false;
-          }
+          destroyStream(false);
           router.push({ path: "/" });
         }
       }
@@ -541,6 +542,11 @@ export default defineComponent({
       showEquipmentCheck.value = false;
     };
 
+    const quitRoom = function () {
+      destroyStream();
+      router.push({ path: "/" });
+    };
+
     onCallBack();
 
     window.onbeforeunload = async function () {
@@ -576,6 +582,7 @@ export default defineComponent({
       setLocalStream,
       publishStream,
       beginAnthor,
+      quitRoom,
     };
   },
 });

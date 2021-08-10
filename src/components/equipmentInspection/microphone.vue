@@ -247,12 +247,12 @@ export default defineComponent({
     onBeforeUnmount(() => {
       if (timerOut) {
         clearTimeout(timerOut);
-        closeMic();
-        navigator.mediaDevices.removeEventListener(
-          "devicechange",
-          onDeviceChange
-        );
       }
+      closeMic();
+      navigator.mediaDevices.removeEventListener(
+        "devicechange",
+        onDeviceChange
+      );
     });
 
     return {
