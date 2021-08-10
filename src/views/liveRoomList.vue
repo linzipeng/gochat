@@ -82,7 +82,7 @@
 
 <script lang="ts">
 import { MainStore } from "@/store/store";
-import { defineComponent, watch, ref } from "vue";
+import { defineComponent, ref, onBeforeUnmount, onMounted } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -95,6 +95,7 @@ export default defineComponent({
   setup() {
     const store = useStore<MainStore>();
     const router = useRouter();
+    let interval = 0;
 
     let roomList = ref<Array<Room>>([]);
 
@@ -179,24 +180,12 @@ export default defineComponent({
       }
     };
 
-    // 用户登录后执行操作
-    const stopWatchLogin = watch(
-      () => store.state.user.uid,
-      async (uid) => {
-        if (uid !== 0) {
-          getRoomList(uid)
-            .then((data) => {
-              roomList.value = data;
-            })
-            .finally(() => {
-              stopWatchLogin();
-            });
-        }
-      },
-      {
-        immediate: true,
+    const clearInterval = function () {
+      if (interval) {
+        window.clearInterval(interval);
+        interval = 0;
       }
-    );
+    };
 
     const handleCommand = function (command: string) {
       let url = "";
@@ -211,6 +200,23 @@ export default defineComponent({
         window.open(url, "_blank");
       }
     };
+
+    onMounted(() => {
+      clearInterval();
+      const updateRoomList = () => {
+        if (store.state.user.uid !== 0) {
+          getRoomList(store.state.user.uid).then((data) => {
+            roomList.value = data;
+          });
+        }
+      };
+      updateRoomList();
+      interval = window.setInterval(updateRoomList, 2000);
+    });
+
+    onBeforeUnmount(() => {
+      clearInterval();
+    });
 
     return { roomList, gotoLiveRoom, getVersion, handleCommand };
   },
