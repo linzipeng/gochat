@@ -14,10 +14,10 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "precache-manifest.5043eea56d61aae8bd7a307701d212b2.js"
+  "precache-manifest.728e748a2a7d1be45ed40937df9d3e38.js"
 );
 
-workbox.core.setCacheNameDetails({prefix: "gochat"});
+workbox.core.setCacheNameDetails({prefix: "go-enjoy"});
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
