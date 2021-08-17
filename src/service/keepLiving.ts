@@ -42,7 +42,6 @@ const livingCheck = function ({
   const handler = setInterval(() => {
     request().catch(() => {
       if (failureTimes >= maxSecond) {
-        sessionStorage.clear();
         ElMessageBox.confirm("网络连接失败，请检查网络后重试", "网络异常", {
           confirmButtonText: "重试",
           cancelButtonText: "退出",

@@ -1,7 +1,6 @@
 .DS_Store
 node_modules
 package-lock.json
-.husky
 dist
 
 /tests/e2e/videos/
@@ -20,7 +19,7 @@ pnpm-debug.log*
 
 # Editor directories and files
 .idea
-.vscode
+# .vscode
 *.suo
 *.ntvs*
 *.njsproj

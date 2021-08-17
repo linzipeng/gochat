@@ -5,11 +5,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onBeforeUnmount, watch } from "vue";
+import { defineComponent, onBeforeMount, onBeforeUnmount } from "vue";
 import { useStore } from "vuex";
 import { MainStore } from "./store/store";
 import keepLiving from "@/service/keepLiving";
-import { userLogin } from "@/service/user";
+import { createUserInfo } from "@/service/user";
 import { checkSystemRequirements } from "@/service/SDKServer";
 import { ElMessageBox } from "element-plus";
 
@@ -38,27 +38,13 @@ export default defineComponent({
         });
       }
     });
-    watch(
-      () => store.state.user?.uid,
-      (value) => {
-        if (value === 0) {
-          userLogin().then(({ user, room, token }) => {
-            if (room) {
-              store.commit("setter", { key: "room", value: room });
-            }
-            store.commit("setter", { key: "user", value: user });
-            store.commit("setter", { key: "token", value: token });
-            sessionStorage.setItem("user", JSON.stringify(user));
-          });
-        }
-      },
-      {
-        immediate: true,
-      }
-    );
+
+    onBeforeMount(() => {
+      const user = createUserInfo();
+      store.commit("setter", { key: "user", value: user });
+    });
 
     onBeforeUnmount(() => {
-      sessionStorage.clear();
       keepLiving.stop();
     });
   },
@@ -79,17 +65,17 @@ body {
 }
 
 ::-webkit-scrollbar {
-  background-color: #1D142E;
+  background-color: #1d142e;
   width: 4px;
   height: 4px;
 }
 
 ::-webkit-scrollbar-corner {
-  background-color: #1D142E;
+  background-color: #1d142e;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #82798F;
+  background-color: #82798f;
   border-radius: 5px;
 }
 
@@ -190,6 +176,27 @@ body {
   }
 }
 
+.about-menu {
+  background: #2c253c !important;
+  .el-dropdown-menu__item {
+    font-size: 12px;
+    color: #e0dde3;
+    margin: 0 6px;
+    padding: 0 14px;
+    border-radius: 4px;
+  }
+  .el-dropdown-menu__item:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: #e0dde3 !important;
+  }
+  .el-dropdown-menu__item--divided {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    &:before {
+      background: #2c253c !important;
+    }
+  }
+}
+
 .el-select {
   width: 253px;
   margin-top: 6px;
@@ -236,10 +243,10 @@ body {
     border: none !important;
     background: rgba(255, 255, 255, 0.1) !important;
     box-shadow: 0px 6px 10px 0px rgba(0, 0, 0, 0.3) !important;
-    color: #E0DDE3;
+    color: #e0dde3;
     &:hover {
       opacity: 0.8;
-      color: #E0DDE3;
+      color: #e0dde3;
     }
   }
   .border-radius-5 {
@@ -252,7 +259,7 @@ body {
   height: 32px;
   line-height: 32px;
   background-color: rgba(44, 37, 60, 0.8) !important;
-  color: #E0DDE3 !important;
+  color: #e0dde3 !important;
   font-size: 12px !important;
   border: none !important;
   top: 50% !important;

@@ -6,12 +6,16 @@
           class="avatar"
           :style="{
             'background-image': `url(${require('../assets/person/' +
-              $store.state.room.creator_name?.picIndex() +
+              ($store.state.room?.cover_img || $store.state.user?.avatar) +
               '-avatar@2x.png')}`,
           }"
         ></i>
         <span class="room-title">
-          {{ $store.state.room?.subject }}
+          {{
+            $store.state.room?.subject ||
+            $route.params.name ||
+            $store.state.user.nick_name + "创建的直播间"
+          }}
         </span>
       </div>
       <div>
@@ -46,9 +50,18 @@
         <div class="video-box">
           <main-video
             class="anchor-box"
+            ref="anthorVideo"
             :streamId="anchorStreamId"
-            :picIndex="$store.state.room.creator_name?.picIndex()"
+            :picIndex="
+              $store.state.room?.cover_img || $store.state.user?.avatar
+            "
+            :user="attendeeMap.get(anchorStreamId)"
             :isPlaying="isPlaying"
+            :isAnchor="isAnchor"
+            :createStream="
+              !showEquipmentCheck &&
+              ($route.params.roomId === '100000' || anchorStreamId !== '')
+            "
             @localStream="setLocalStream"
             :style="
               !audienceStreamId.length && { width: '100%', maxWidth: '100%' }
@@ -62,6 +75,8 @@
               :key="streamId"
               :streamId="streamId"
               :attendeeMap="attendeeMap"
+              :isAnchor="isAnchor"
+              :user="attendeeMap.get(streamId)"
               @localStream="setLocalStream"
               @handleCommand="
                 (value, streamId) => handleCommand(value, streamId)
@@ -93,6 +108,7 @@
           >
             <icon
               :name="
+                attendeeMap.get($store.state.user?.uid.toString())?.mic === 1 ||
                 $store.state.cameraConfig.actualAudioMuted
                   ? 'icon_operation_mic_off'
                   : 'icon_mic_on'
@@ -106,10 +122,7 @@
             v-if="isAnchor && !showEquipmentCheck"
             @click="updateMedia('music')"
           >
-            <icon
-              name="icon_setting_music"
-              style="transform: scale(0.8)"
-            ></icon
+            <icon name="icon_setting_music" style="transform: scale(0.8)"></icon
             ><br />
             <div>背景音</div>
           </div>
@@ -123,44 +136,39 @@
             <span
               v-else-if="tryingConnected"
               class="room-operation cancel-micro"
-              @click="applyForMicro(1)"
+              @click="applyForMicro(2, $store.state.room.host_id)"
               >取消连麦</span
             >
             <span
               v-else
               class="room-operation apply-for-micro"
-              @click="applyForMicro(2)"
+              @click="applyForMicro(1, $store.state.room.host_id)"
               ><icon name="icon_wheat"></icon>申请连麦</span
             >
           </template>
         </div>
       </el-main>
       <chat-box
-        :isLogin="isLogin"
-        :tryingConnected="tryingConnected"
         :audienceStreamId="audienceStreamId"
         :attendeeList="attendeeList"
         @destroyStream="destroyStream"
-        @updateMic="updateMic"
-        @updateAttendee="updateAttendee"
         @connected="connectedAnthor"
+        :inviteList="inviteList"
+        @updateInviteList="updateInviteList"
       ></chat-box>
     </el-container>
     <media-setting
-      :show="showMediaSetting"
-      :localStream="localStream"
-      :isPlaying="isPlaying"
+      v-if="isAnchor && showMediaSetting"
       @show="showMediaSetting = false"
     ></media-setting>
     <music-setting
       v-if="isAnchor"
       v-show="music"
       @close="music = false"
-      :streamId="anchorStreamId"
     ></music-setting>
     <equipmentCheck
       v-if="showEquipmentCheck"
-      @checkFinish="beginAnthor"
+      @checkFinish="createStream"
     ></equipmentCheck>
   </el-container>
 </template>
@@ -169,20 +177,23 @@
 import {
   computed,
   defineComponent,
+  onBeforeMount,
   onBeforeUnmount,
   ref,
-  watchEffect,
 } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "vuex";
 import router from "@/router";
 import mainVideo from "@/components/mainVideo.vue";
 import {
-  getStatefulList,
+  closeRoom,
+  createRoom,
+  getAttendeeList,
   loginRoom,
   logoutRoom,
-  operateRaiseHand,
-  setUserInfo,
+  onstageInviteAction,
+  onstageRequestAction,
+  setStatus,
 } from "@/service/room";
 import { zg } from "@/service/SDKServer";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -191,6 +202,7 @@ import { MainStore } from "@/store/store";
 import mediaSetting from "@/components/mediaSetting.vue";
 import musicSetting from "@/components/musicSetting.vue";
 import equipmentCheck from "@/components/equipmentInspection/equipmentCheck.vue";
+import { createUserInfo } from "@/service/user";
 
 export default defineComponent({
   components: {
@@ -204,13 +216,63 @@ export default defineComponent({
     const store = useStore<MainStore>();
     const { params: routeParams } = useRoute();
     const music = ref(false); // 设置背景音弹窗
-    const anchorStreamId = ref("");
-    const audienceStreamId = ref<Array<string>>([]);
-    const anthor = ref({} as Attendee); // 主播基础信息
-    const attendeeList = ref<Array<Attendee>>([]); // 观众基础信息
+    const raiseHandList: number[] = []; // 申请连麦列表
+    const anthorVideo = ref<InstanceType<typeof mainVideo>>();
+    const streamIdList = ref<Array<string>>([]);
+    const attendeeList = ref<Array<User>>([]); // 房间成员列表
+    // 主播流Id
+    const anchorStreamId = computed(() => {
+      if (streamIdList.value.length === 0) {
+        return "";
+      } else if (streamIdList.value.length === 1) {
+        return streamIdList.value[0];
+      } else {
+        for (const streamId of streamIdList.value) {
+          if (streamId === store.state.room.host_id.toString()) {
+            return streamId;
+          }
+        }
+        return streamIdList.value[0];
+      }
+    });
+    // 连麦观众流Id
+    const audienceStreamId = computed(() => {
+      if (streamIdList.value.length < 2) {
+        return [];
+      } else {
+        return streamIdList.value.filter((streamId) => {
+          return streamId !== store.state.room.host_id.toString();
+        });
+      }
+    });
+    // 主播信息
+    // const anthor = computed(() => {
+    //   for (const attendee of attendeeList.value) {
+    //     if (attendee.role === 3) {
+    //       return attendee;
+    //     }
+    //   }
+    //   return {};
+    // });
+    // 观众信息
+    // const andience = computed(() => {
+    //   return attendeeList.value.filter((attendee) => {
+    //     return attendee.role !== 3;
+    //   });
+    // });
+    // 房间人员映射表
+    const attendeeMap = computed(() => {
+      const map = new Map<string, User>();
+      for (const attendee of attendeeList.value) {
+        map.set(attendee.uid.toString(), attendee);
+      }
+      return map;
+    });
+    let isPublishing = false;
+    const inviteList = ref<Array<number>>([]); // 邀请列表
+
     const showStatus = ref(false); // 展示主播设备状态
     const showMediaSetting = ref(false); // 设置房间弹窗
-    const isLogin = ref(false);
     const tryingConnected = ref(false);
     const showEquipmentCheck = ref(false);
 
@@ -219,10 +281,12 @@ export default defineComponent({
     const isPlaying = ref(true);
     const setLocalStream = function (value: MediaStream, streamId: string) {
       localStream.value = value;
-      if (audienceStreamId.value.indexOf(streamId) !== -1) {
+      if (
+        streamIdList.value.indexOf(streamId) !== -1 &&
+        routeParams.roomId !== "100000"
+      ) {
         // 如果是观众端，则直接推流
         zg.startPublishingStream(streamId, localStream.value, {
-          extraInfo: isAnchor.value ? "anchor" : "Audience",
           videoCodec: "VP8",
         });
       }
@@ -231,28 +295,20 @@ export default defineComponent({
     const isAnchor = computed(() => {
       // 是否为主播本人
       return (
-        store.state.room?.creator_id.toString() ===
-        store.state.user?.uid.toString()
+        store.state.room?.host_id.toString() ===
+          store.state.user?.uid.toString() || streamIdList.value.length === 0
       );
-    });
-
-    const attendeeMap = computed(() => {
-      const map = new Map<string, Attendee>();
-      for (const attendee of attendeeList.value) {
-        map.set(attendee.uid.toString(), attendee);
-      }
-      return map;
     });
 
     const destroyStream = function (broadcast = true) {
       if (broadcast) {
         // 广播通知其他成员
-        setUserInfo({
+        setStatus({
           uid: store.state.user.uid,
           target_uid: store.state.user.uid,
-          room_id: routeParams.roomId as string,
-          on_stage: 1,
-          type: 2,
+          nick_name: store.state.user.nick_name,
+          room_id: store.state.room.room_id,
+          type: 3,
         });
       }
       // 结束连麦
@@ -263,8 +319,8 @@ export default defineComponent({
         if (isAnchor.value) {
           isPlaying.value = false;
         } else {
-          audienceStreamId.value.splice(
-            audienceStreamId.value.indexOf(store.state.user.uid.toString()),
+          streamIdList.value.splice(
+            streamIdList.value.indexOf(store.state.user.uid.toString()),
             1
           );
         }
@@ -274,97 +330,326 @@ export default defineComponent({
       }
     };
 
-    const applyForMicro = function (type: 1 | 2): void {
-      if (type === 2 && audienceStreamId.value.length > 2) {
+    const applyForMicro = function (
+      action: 1 | 2 | 3 | 4,
+      targetUid: number
+    ): void {
+      if (action === 1 && audienceStreamId.value.length > 2) {
         ElMessage({
           customClass: "alert-box",
           message: "最多支持3名观众连麦",
         });
         return;
       }
-      operateRaiseHand(store.state.user.uid, routeParams.roomId as string, type)
+      onstageRequestAction(
+        store.state.user.uid,
+        store.state.user.nick_name,
+        targetUid,
+        store.state.room.room_id,
+        action
+      )
         .then(() => {
-          if (type === 2) {
+          if (action === 1) {
             tryingConnected.value = true;
             ElMessage({
               customClass: "alert-box",
               message: "你已申请连麦，请等待主播确认",
             });
-          } else if (type === 1) {
+          } else if (action === 2) {
             tryingConnected.value = false;
           }
         })
-        .catch(() => {
-          ElMessage({
-            customClass: "alert-box",
-            message: "申请失败，请重试",
-          });
+        .catch((mess) => {
+          if (action === 1 || action === 2) {
+            ElMessage({
+              customClass: "alert-box",
+              message: mess || "申请失败，请重试",
+            });
+          } else if (action === 3) {
+            ElMessage({
+              customClass: "alert-box",
+              message: mess || "最多支持3名观众连麦",
+            });
+          }
         });
     };
 
-    const connectedAnthor = function (isConnected: boolean) {
+    const connectedAnthor = function (isConnected: boolean, message?: string) {
       // 与主播连麦
       if (isConnected) {
-        audienceStreamId.value.push(store.state.user.uid.toString());
-        updateAttendee();
+        streamIdList.value.push(store.state.user.uid.toString());
       } else {
         if (tryingConnected.value) {
           ElMessage({
             customClass: "alert-box",
-            message: "主播已拒绝与你的连麦申请",
+            message: message || "主播已拒绝与你的连麦申请",
           });
         }
       }
-      // 放下举手
-      applyForMicro(1);
+      tryingConnected.value = false;
     };
 
     const updateAttendee = function () {
-      getStatefulList(store.state.user.uid, routeParams.roomId as string).then(
+      getAttendeeList(store.state.user.uid, store.state.room.room_id).then(
         (data) => {
-          attendeeList.value = [];
-          for (const item of data) {
-            if (item.role === 3) {
-              anthor.value = item;
-            } else {
-              attendeeList.value.push(item);
-            }
-          }
+          attendeeList.value = data;
         }
       );
     };
 
     const onCallBack = () => {
+      zg.on("IMRecvBroadcastMessage", (roomID, messageInfoList) => {
+        if (store.state.room.room_id === roomID) {
+          messageInfoList.forEach((messageInfo) => {
+            if (messageInfo.fromUser.userID === "system") {
+              try {
+                const { cmd, data } = JSON.parse(messageInfo.message);
+                if (cmd === 6002) {
+                  // 成员状态变更通知
+                  /**
+                   * data.type
+                   * 1.mic变化
+                   * 2.cameara 变化
+                   * 3.连麦状态变化
+                   * 4.被邀请连麦
+                   * 5.取消邀请连麦
+                   * 6.拒绝邀请连麦
+                   * 7.因为台上人数满上台失败
+                   */
+                  debugger;
+                  data.users.forEach((attendee: User) => {
+                    if (attendee.uid === store.state.user.uid) {
+                      // 主播操作的信息
+                      let mess = "";
+                      if (
+                        data.type === 1 &&
+                        data.operator_uid !== store.state.user.uid
+                      ) {
+                        if (attendee.mic === 1) {
+                          mess = "你已被主播禁言";
+                        } else {
+                          mess = "你已被主播解除禁言";
+                        }
+                        updateMic(attendee.mic as 1 | 2);
+                      } else if (data.type === 3) {
+                        if (
+                          attendee.onstage_state === 1 &&
+                          store.state.user.uid !== data.operator_uid
+                        ) {
+                          mess = "你已被主播抱下麦";
+                          destroyStream(false);
+                        } else if (
+                          attendee.onstage_state === 2 &&
+                          data.operator_uid === store.state.user.uid
+                        ) {
+                          connectedAnthor(true);
+                        }
+                      } else if (data.type === 4 && !isAnchor.value) {
+                        ElMessageBox.confirm(
+                          "主播邀请您连麦？是否同意",
+                          "连麦邀请",
+                          {
+                            confirmButtonText: "同意",
+                            cancelButtonText: "拒绝",
+                            center: true,
+                            showClose: false,
+                            customClass: "message-box",
+                            cancelButtonClass:
+                              "message-cancel-btn border-radius-5 ",
+                            confirmButtonClass:
+                              "zg-button small-button border-radius-5 ",
+                          }
+                        )
+                          .then(() => {
+                            onstageInviteAction(
+                              store.state.user.uid,
+                              store.state.room.room_id,
+                              store.state.room.host_id,
+                              store.state.user.nick_name,
+                              3
+                            )
+                              .then(() => {
+                                // connectedAnthor(true);
+                              })
+                              .catch((mess) => {
+                                ElMessage({
+                                  customClass: "alert-box",
+                                  message: mess || "最多支持3名观众连麦",
+                                });
+                              });
+                          })
+                          .catch(() => {
+                            onstageInviteAction(
+                              store.state.user.uid,
+                              store.state.room.room_id,
+                              store.state.room.host_id,
+                              store.state.user.nick_name,
+                              4
+                            );
+                          });
+                      }
+                      if (mess) {
+                        ElMessage({
+                          customClass: "alert-box",
+                          message: mess,
+                        });
+                      }
+                    }
+                    if (isAnchor.value) {
+                      if (data.type === 3) {
+                        inviteList.value.splice(
+                          inviteList.value.indexOf(attendee.uid),
+                          1
+                        );
+                      } else if (data.type === 6) {
+                        inviteList.value.splice(
+                          inviteList.value.indexOf(attendee.uid),
+                          1
+                        );
+                        ElMessage({
+                          customClass: "alert-box",
+                          message: `${attendee.nick_name} 已拒绝连麦邀请`,
+                        });
+                      } else if (data.type === 7) {
+                        // 观众同意连麦，但是连麦人数已上限
+                        inviteList.value.splice(
+                          inviteList.value.indexOf(data.uid),
+                          1
+                        );
+                      }
+                    }
+                  });
+                  updateAttendee();
+                } else if (cmd === 6003) {
+                  // 成员列表变更通知
+                  updateAttendee();
+                }
+              } catch (err) {
+                console.log(err);
+              }
+            }
+          });
+        }
+      });
+      zg.on("IMRecvCustomCommand", (roomID, fromUser, command) => {
+        if (store.state.room.room_id === roomID) {
+          if (fromUser.userID === "system") {
+            try {
+              const { cmd, data } = JSON.parse(command);
+              if (cmd === 12006) {
+                // 连麦申请/取消申请
+                if (!raiseHandList.includes(data.uid)) {
+                  // 不包含在举手列表中
+                  raiseHandList.push(data.uid);
+                }
+                ElMessageBox.confirm(
+                  `${data.nick_name} 申请与你连麦`,
+                  "申请连麦",
+                  {
+                    customClass: "message-box",
+                    confirmButtonText: "同意",
+                    cancelButtonText: "拒绝",
+                    center: true,
+                    showClose: false,
+                    cancelButtonClass: "message-cancel-btn border-radius-5 ",
+                    confirmButtonClass:
+                      "zg-button small-button border-radius-5 ",
+                  }
+                )
+                  .then(() => {
+                    if (raiseHandList.includes(data.uid)) {
+                      onstageRequestAction(
+                        store.state.user.uid,
+                        store.state.user.nick_name,
+                        data.uid,
+                        roomID,
+                        3
+                      ).catch((err) => {
+                        ElMessage({
+                          customClass: "alert-box",
+                          message: err,
+                        });
+                      });
+                    } else {
+                      ElMessage({
+                        customClass: "alert-box",
+                        message: data.nick_name + `已取消连麦申请`,
+                      });
+                    }
+                  })
+                  .catch(() => {
+                    if (raiseHandList.includes(data.uid)) {
+                      onstageRequestAction(
+                        store.state.user.uid,
+                        store.state.user.nick_name,
+                        data.uid,
+                        roomID,
+                        4
+                      ).catch((err) => {
+                        ElMessage({
+                          customClass: "alert-box",
+                          message: err,
+                        });
+                      });
+                    } else {
+                      ElMessage({
+                        customClass: "alert-box",
+                        message: data.nick_name + `已取消连麦申请`,
+                      });
+                    }
+                  })
+                  .finally(() => {
+                    // 无论同意或者拒绝，清除举手列表
+                    if (raiseHandList.includes(data.uid)) {
+                      raiseHandList.splice(raiseHandList.indexOf(data.uid), 1);
+                    }
+                  });
+              } else if (cmd === 12007) {
+                // 取消申请连麦
+                if (raiseHandList.includes(data.uid)) {
+                  raiseHandList.splice(raiseHandList.indexOf(data.uid), 1);
+                }
+              } else if (cmd === 12008) {
+                connectedAnthor(
+                  false,
+                  data.reason === 1
+                    ? "主播已拒绝与你的连麦申请"
+                    : "连麦人数达到上限"
+                );
+              }
+            } catch (error) {
+              console.log(error);
+            }
+          }
+        }
+      });
       zg.on("roomStreamUpdate", (roomID, updateType, streamList) => {
-        if (routeParams.roomId === roomID) {
+        if (store.state.room.room_id === roomID) {
           updateAttendee();
           if (updateType === "ADD") {
             streamList.forEach((stream) => {
-              if (stream.user.userID !== store.state.user.uid.toString()) {
-                if (stream.extraInfo === "anchor") {
-                  anchorStreamId.value = stream.streamID;
-                } else {
-                  audienceStreamId.value.push(stream.streamID);
-                }
+              if (streamIdList.value.indexOf(stream.streamID) === -1) {
+                streamIdList.value.push(stream.streamID);
               }
             });
           } else {
             streamList.forEach((stream) => {
               if (stream.user.userID !== store.state.user.uid.toString()) {
                 zg.stopPlayingStream(stream.streamID);
-                if (stream.extraInfo === "anchor") {
+                if (store.state.room.stream_id === stream.streamID) {
                   ElMessageBox.alert("主播已结束直播", {
                     confirmButtonText: "确定",
                     center: true,
                     showClose: false,
                     customClass: "message-box",
-                    confirmButtonClass: "zg-button small-button border-radius-5 ",
+                    confirmButtonClass:
+                      "zg-button small-button border-radius-5 ",
+                  }).then(() => {
+                    quitRoom(false);
                   });
-                  anchorStreamId.value = "";
-                  router.push({ path: "/" });
                 } else {
-                  audienceStreamId.value.splice(
-                    audienceStreamId.value.indexOf(stream.streamID),
+                  streamIdList.value.splice(
+                    streamIdList.value.indexOf(stream.streamID),
                     1
                   );
                 }
@@ -378,27 +663,72 @@ export default defineComponent({
     const updateMedia = function (type: "microphone" | "webcam" | "music") {
       if (localStream.value) {
         if (type === "webcam") {
-          store.state.cameraConfig.actualVideoMuted = !store.state.cameraConfig.actualVideoMuted;
-          zg.mutePublishStreamVideo(
-            localStream.value,
-            store.state.cameraConfig.actualVideoMuted
+          const cameraConfig = JSON.parse(
+            JSON.stringify(store.state.cameraConfig)
           );
+          cameraConfig.actualVideoMuted = !cameraConfig.actualVideoMuted;
+          store.commit("setter", {
+            key: "cameraConfig",
+            value: cameraConfig,
+          });
+          if (isPlaying.value) {
+            setStatus({
+              uid: store.state.user.uid,
+              target_uid: store.state.user.uid,
+              nick_name: store.state.user.nick_name,
+              room_id: store.state.room.room_id,
+              mic: store.state.cameraConfig.actualAudioMuted ? 1 : 2,
+              camera: store.state.cameraConfig.actualVideoMuted ? 1 : 2,
+              type: 2,
+            });
+          }
         } else if (type === "microphone") {
-          store.state.cameraConfig.actualAudioMuted = !store.state.cameraConfig.actualAudioMuted;
           if (isAnchor.value) {
-            zg.mutePublishStreamAudio(
-              localStream.value,
-              store.state.cameraConfig.actualAudioMuted
+            const cameraConfig = JSON.parse(
+              JSON.stringify(store.state.cameraConfig)
             );
+            cameraConfig.actualAudioMuted = !cameraConfig.actualAudioMuted;
+            store.commit("setter", {
+              key: "cameraConfig",
+              value: cameraConfig,
+            });
+            if (isPlaying.value) {
+              setStatus({
+                uid: store.state.user.uid,
+                target_uid: store.state.user.uid,
+                nick_name: store.state.user.nick_name,
+                room_id: store.state.room.room_id,
+                mic: store.state.cameraConfig.actualAudioMuted ? 1 : 2,
+                type: 1,
+              });
+            }
           } else {
-            const attendee = attendeeMap.value.get(
-              store.state.user.uid.toString()
-            );
-            if (attendee?.mic === 2) {
-              zg.mutePublishStreamAudio(
-                localStream.value,
-                store.state.cameraConfig.actualAudioMuted
+            if (
+              attendeeMap.value.get(store.state.user.uid.toString())?.mic ===
+                1 &&
+              !store.state.cameraConfig.actualAudioMuted
+            ) {
+              ElMessage({
+                customClass: "alert-box",
+                message: `您已被主播禁麦`,
+              });
+            } else {
+              const cameraConfig = JSON.parse(
+                JSON.stringify(store.state.cameraConfig)
               );
+              cameraConfig.actualAudioMuted = !cameraConfig.actualAudioMuted;
+              store.commit("setter", {
+                key: "cameraConfig",
+                value: cameraConfig,
+              });
+              setStatus({
+                uid: store.state.user.uid,
+                target_uid: store.state.user.uid,
+                nick_name: store.state.user.nick_name,
+                room_id: store.state.room.room_id,
+                mic: store.state.cameraConfig.actualAudioMuted ? 1 : 2,
+                type: 1,
+              });
             }
           }
         } else if (type === "music") {
@@ -408,19 +738,40 @@ export default defineComponent({
     };
 
     const publishStream = function () {
-      if (localStream.value) {
+      if (localStream.value && !isPublishing) {
         if (!isPlaying.value) {
-          const isSuccess = zg.startPublishingStream(
-            store.state.user.uid.toString(),
-            localStream.value,
-            {
-              extraInfo: isAnchor.value ? "anchor" : "Audience",
-              videoCodec: "VP8",
-            }
-          );
-          if (isSuccess) {
-            isPlaying.value = true;
-          }
+          isPublishing = true;
+          // 创建房间
+          createRoom(
+            store.state.user,
+            (routeParams.name ||
+              store.state.user.nick_name + "创建的直播间") as string
+          )
+            .then(({ user_info: userInfo, room_info: roomInfo }) => {
+              store.commit("setter", { key: "user", value: userInfo });
+              store.commit("setter", { key: "room", value: roomInfo });
+              sessionStorage.setItem("user", JSON.stringify(userInfo));
+              streamIdList.value.push(userInfo.uid.toString());
+              isPlaying.value = true;
+              updateAttendee();
+              if (anthorVideo.value) {
+                anthorVideo.value.startPublishingStream();
+              }
+              router.push({
+                name: "LiveRoom",
+                params: { roomId: roomInfo.room_id },
+              });
+            })
+            .catch(() => {
+              ElMessage({
+                showClose: false,
+                customClass: "alert-box",
+                message: "创建失败，请重试",
+              });
+            })
+            .finally(() => {
+              isPublishing = false;
+            });
         } else {
           ElMessageBox({
             title: "结束直播",
@@ -436,103 +787,79 @@ export default defineComponent({
             cancelButtonClass: "message-cancel-btn border-radius-5 ",
             confirmButtonClass: "zg-button small-button border-radius-5 ",
           }).then(() => {
-            destroyStream(false);
-            router.push({ path: "/" });
+            quitRoom(false);
           });
         }
       }
     };
 
-    const stopLoginRoom = watchEffect(() => {
-      if (store.state.token && routeParams.roomId) {
-        loginRoom(
-          store.state.user,
-          routeParams.roomId as string,
-          store.state.token
-        )
+    const loginRoomInit = function () {
+      if (routeParams.roomId !== "100000") {
+        loginRoom(store.state.user, routeParams.roomId as string)
           .then(({ data }) => {
-            isLogin.value = true;
-            if (store.state.room.room_id !== routeParams.roomId) {
-              store.commit("setter", { key: "room", value: data });
-            }
-            if (isAnchor.value) {
-              isPlaying.value = false;
-              try {
-                const stringConfig = sessionStorage.getItem("checkFinish");
-                if (stringConfig) {
-                  const config = JSON.parse(stringConfig);
-                  if (config.cameraConfig) {
-                    store.commit("setter", {
-                      key: "cameraConfig",
-                      value: config.cameraConfig,
-                    });
-                  }
-                  if (config.speakerDevice) {
-                    store.commit("setter", {
-                      key: "speakerDevice",
-                      value: config.speakerDevice,
-                    });
-                  }
-                  beginAnthor();
-                } else {
-                  showEquipmentCheck.value = true;
-                }
-              } catch (error) {
-                showEquipmentCheck.value = true;
-              }
-            }
-            sessionStorage.setItem("room", JSON.stringify(store.state.room));
+            store.commit("setter", { key: "user", value: data.user_info });
+            store.commit("setter", { key: "room", value: data.room_info });
           })
           .catch(({ ret }) => {
             ElMessageBox.alert(ret.message, {
               center: true,
               confirmButtonText: "确定",
               customClass: "message-box",
+              showClose: false,
               confirmButtonClass: "zg-button small-button border-radius-5 ",
             });
             if (ret.code === 81001) {
-              sessionStorage.clear();
-              store.commit("setter", {
-                key: "user",
-                value: { uid: 0, nick_name: "", avatar: "" },
-              });
-              store.commit("setter", {
-                key: "room",
-                value: {
-                  room_id: "",
-                  subject: "",
-                  create_time: "",
-                  creator_name: "",
-                  creator_id: 0,
-                  online_count: "",
-                  on_stage_count: "",
-                },
-              });
-            } else if (ret.code === 81000) {
-              router.push({ path: "/" });
+              const user = createUserInfo();
+              store.commit("setter", { key: "user", value: user });
             }
-          })
-          .finally(() => {
-            stopLoginRoom();
+            quitRoom(false);
           });
+      } else {
+        isPlaying.value = false;
+        try {
+          const stringConfig = sessionStorage.getItem("checkFinish");
+          if (stringConfig) {
+            const config = JSON.parse(stringConfig);
+            if (config.cameraConfig) {
+              store.commit("setter", {
+                key: "cameraConfig",
+                value: config.cameraConfig,
+              });
+            }
+            if (config.speakerDevice) {
+              store.commit("setter", {
+                key: "speakerDevice",
+                value: config.speakerDevice,
+              });
+            }
+            createStream();
+          } else {
+            showEquipmentCheck.value = true;
+          }
+        } catch (error) {
+          showEquipmentCheck.value = true;
+        }
       }
-    });
+    };
+
+    // 创建摄像头和麦克风，准备推流
+    const createStream = function () {
+      if (routeParams.roomId === "100000") {
+        // 主播端创建摄像头前需要关闭设备检测弹窗
+        showEquipmentCheck.value = false;
+      } else {
+        streamIdList.value.push(store.state.user.uid.toString());
+      }
+    };
 
     const updateMic = function (mic: 1 | 2) {
       if (localStream.value) {
         if (mic === 1) {
           zg.mutePublishStreamAudio(localStream.value, true);
-        } else if (mic === 2 && store.state.cameraConfig.actualAudioMuted) {
+        } else if (mic === 2 && !store.state.cameraConfig.actualAudioMuted) {
           // 解除禁言的同时，麦克风必须开启才开始推音频流
           zg.mutePublishStreamAudio(localStream.value, false);
         }
-        setUserInfo({
-          uid: store.state.user.uid,
-          target_uid: store.state.user.uid,
-          room_id: routeParams.roomId as string,
-          mic,
-          type: 1,
-        });
       }
     };
 
@@ -541,44 +868,59 @@ export default defineComponent({
       if (command === "onMic") {
         mic = mic === 1 ? 2 : 1;
       }
-      const message = {
-        cmd: 10000,
-        data: {
-          type: command === "onStage" ? 2 : 1,
-          mic: mic,
-        },
-      };
-      zg.sendCustomCommand(
-        routeParams.roomId as string,
-        JSON.stringify(message),
-        [streamId]
-      );
+      setStatus({
+        uid: store.state.user.uid,
+        room_id: store.state.room.room_id,
+        nick_name: store.state.user.nick_name,
+        target_uid: parseInt(streamId),
+        type: command === "onMic" ? 1 : 3,
+        mic,
+      });
     };
 
-    // 检测完成回调
-    const beginAnthor = function () {
-      anchorStreamId.value = store.state.user.uid?.toString();
-      showEquipmentCheck.value = false;
-    };
-
-    const quitRoom = function () {
-      destroyStream();
+    const quitRoom = function (broadcast = true) {
+      if (store.state.room.room_id === "" || store.state.room.host_id === 0)
+        return;
+      destroyStream(broadcast);
+      logoutRoom(store.state.user.uid, store.state.room.room_id);
+      if (isAnchor.value) {
+        closeRoom(store.state.user.uid, store.state.room.room_id);
+      }
       router.push({ path: "/" });
+    };
+
+    const updateInviteList = function (type: string, value: number[]) {
+      if (type === "add") {
+        inviteList.value.push(...value);
+      }
     };
 
     onCallBack();
 
     window.onbeforeunload = async function () {
-      // await logoutRoom(store.state.user?.uid, routeParams.roomId as string);
+      quitRoom(!isAnchor.value);
     };
 
+    onBeforeMount(() => {
+      loginRoomInit();
+    });
+
     onBeforeUnmount(() => {
-      logoutRoom(store.state.user?.uid, routeParams.roomId as string);
-      store.commit("setter", { key: "room", value: null });
+      store.commit("setter", {
+        key: "room",
+        value: {
+          room_id: "",
+          subject: "",
+          online: 0,
+          cover_img: "",
+          stream_id: "",
+          host_id: 0,
+          create_time: 0,
+        },
+      });
     });
 
     return {
-      isLogin,
       anchorStreamId,
       audienceStreamId,
       isAnchor,
@@ -591,17 +933,19 @@ export default defineComponent({
       showStatus,
       showMediaSetting,
       showEquipmentCheck,
+      anthorVideo,
+      inviteList,
+      updateInviteList,
       updateMedia,
       updateAttendee,
-      updateMic,
       handleCommand,
       destroyStream,
       applyForMicro,
       connectedAnthor,
       setLocalStream,
       publishStream,
-      beginAnthor,
       quitRoom,
+      createStream,
     };
   },
 });
@@ -613,7 +957,7 @@ export default defineComponent({
   width: 100%;
   height: 100%;
   padding: 16px;
-  color: #E0DDE3;
+  color: #e0dde3;
   min-width: 1000px;
   min-height: 600px;
 

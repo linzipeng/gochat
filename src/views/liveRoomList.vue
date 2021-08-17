@@ -77,7 +77,7 @@
               <img
                 class="room-cover"
                 :src="
-                  require(`../assets/person/${room.creator_name?.picIndex()}-cover@2x.png`)
+                  require(`../assets/person/${room.cover_img}-cover@2x.png`)
                 "
               />
             </div>
@@ -86,7 +86,7 @@
               <div class="room-number">
                 <div>
                   <icon name="icon_people" class="room-person"></icon>
-                  <span>{{ room.online_count }}</span>
+                  <span>{{ room.online }}</span>
                 </div>
                 <div class="goto-look">去观看 ></div>
               </div>
@@ -101,11 +101,11 @@
 
 <script lang="ts">
 import { MainStore } from "@/store/store";
-import { defineComponent, ref, onBeforeUnmount, onMounted } from "vue";
+import { defineComponent, ref, onBeforeUnmount, onBeforeMount } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
-import { ElMessage, ElMessageBox } from "element-plus";
-import { createRoom, getRoomList } from "@/service/room";
+import { ElMessageBox } from "element-plus";
+import { getRoomList } from "@/service/room";
 import { getVersion } from "@/service/SDKServer";
 import icon from "@/components/icon.vue";
 
@@ -141,69 +141,60 @@ export default defineComponent({
         return;
       }
 
-      if (store.state.user.uid) {
-        if (store.state.token) {
-          if (!room) {
-            ElMessageBox.prompt("", "创建直播间", {
-              showInput: true,
-              customClass: "create-room-message",
-              showCancelButton: false,
-              confirmButtonClass: `zg-button small-button`,
-              confirmButtonText: "创建直播",
-              inputPlaceholder: "请输入直播间名称",
-              inputValue: `${store.state.user.nick_name}的直播间`,
-              inputValidator(value) {
-                if (value.length > 15) {
-                  const input = document.querySelector(
-                    ".create-room-message .el-input input"
-                  ) as HTMLInputElement;
-                  input.value = value.substring(0, 15);
-                }
-                const btn = document.querySelector(
-                  ".create-room-message .zg-button"
-                ) as HTMLButtonElement;
-                if (value) {
-                  btn.className = btn.className.replace(
-                    "disabled-zg-button",
-                    ""
-                  );
-                } else {
-                  btn.className = `${btn.className} disabled-zg-button`;
-                }
-                return !!value;
-              },
-            }).then(({ value }) => {
-              createRoom(store.state.user.uid, value)
-                .then((data) => {
-                  store.commit("setter", { key: "room", value: data });
-                  router.push({ path: `/liveRoom/${data.room_id}` });
-                })
-                .catch(() => {
-                  ElMessage({
-                    showClose: false,
-                    customClass: "alert-box",
-                    message: "创建失败，请重试",
-                  });
-                });
-            });
-          } else {
-            store.commit("setter", { key: "room", value: room });
-            router.push({ path: `/liveRoom/${room.room_id}` });
-          }
-        } else {
-          ElMessage({
-            showClose: false,
-            customClass: "alert-box",
-            message: "用户账号token异常！稍后重试！",
+      if (!room) {
+        ElMessageBox.prompt("", "创建直播间", {
+          showInput: true,
+          customClass: "create-room-message",
+          showCancelButton: false,
+          confirmButtonClass: `zg-button small-button`,
+          confirmButtonText: "创建直播",
+          inputPlaceholder: "请输入直播间名称",
+          inputValue: `${store.state.user.nick_name}创建的直播间`,
+          inputValidator(value) {
+            if (value.length > 15) {
+              const input = document.querySelector(
+                ".create-room-message .el-input input"
+              ) as HTMLInputElement;
+              input.value = value.substring(0, 15);
+            }
+            const btn = document.querySelector(
+              ".create-room-message .zg-button"
+            ) as HTMLButtonElement;
+            if (value) {
+              btn.className = btn.className.replace("disabled-zg-button", "");
+            } else {
+              btn.className = `${btn.className} disabled-zg-button`;
+            }
+            return !!value;
+          },
+        }).then(({ value }) => {
+          router.push({
+            name: "LiveRoom",
+            params: {
+              roomId: "100000",
+              name: value,
+            },
           });
-        }
-      } else {
-        ElMessage({
-          showClose: false,
-          message: "用户尚未登录",
-          customClass: "alert-box",
         });
+      } else {
+        router.push({ path: `/liveRoom/${room.room_id}` });
       }
+      // if (store.state.user.uid) {
+      //   if (store.state.token) {
+      //   } else {
+      //     ElMessage({
+      //       showClose: false,
+      //       customClass: "alert-box",
+      //       message: "用户账号token异常！稍后重试！",
+      //     });
+      //   }
+      // } else {
+      //   ElMessage({
+      //     showClose: false,
+      //     message: "用户尚未登录",
+      //     customClass: "alert-box",
+      //   });
+      // }
     };
 
     const clearInterval = function () {
@@ -227,14 +218,12 @@ export default defineComponent({
       }
     };
 
-    onMounted(() => {
+    onBeforeMount(() => {
       clearInterval();
       const updateRoomList = () => {
-        if (store.state.user.uid !== 0) {
-          getRoomList(store.state.user.uid).then((data) => {
-            roomList.value = data;
-          });
-        }
+        getRoomList().then((data) => {
+          roomList.value = data;
+        });
       };
       updateRoomList();
       interval = window.setInterval(updateRoomList, 2000);
@@ -265,8 +254,8 @@ export default defineComponent({
   padding: 4px 6px !important;
   font-size: 10px !important;
   vertical-align: middle;
-  background: #362F46 !important;
-  color: #E0DDE3 !important;
+  background: #362f46 !important;
+  color: #e0dde3 !important;
 }
 
 .about-popover-position {
@@ -281,27 +270,6 @@ export default defineComponent({
   min-width: 62px !important;
   width: 62px !important;
   height: 22px !important;
-}
-
-.about-menu {
-  background: #2c253c !important;
-  .el-dropdown-menu__item {
-    font-size: 12px;
-    color: #e0dde3;
-    margin: 0 6px;
-    padding: 0 14px;
-    border-radius: 4px;
-  }
-  .el-dropdown-menu__item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #e0dde3;
-  }
-  .el-dropdown-menu__item--divided {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    &:before {
-      background: #2c253c !important;
-    }
-  }
 }
 
 .icon-feedback {
@@ -325,7 +293,7 @@ export default defineComponent({
 
 .about-icon {
   margin-right: 10px;
-  color: #E0DDE3;
+  color: #e0dde3;
 }
 
 .create-room-message {
@@ -336,9 +304,9 @@ export default defineComponent({
   border-radius: 8px;
   border: none;
   .invalid > input {
-    border-color: #82798F !important;
+    border-color: #82798f !important;
     &:focus {
-      border-color: #82798F !important;
+      border-color: #82798f !important;
     }
   }
   .el-message-box__errormsg {
@@ -349,9 +317,9 @@ export default defineComponent({
     background-color: transparent;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
-    color: #E0DDE3;
+    color: #e0dde3;
     &::placeholder {
-      color: #82798F;
+      color: #82798f;
     }
   }
   .el-message-box__header {
@@ -517,7 +485,7 @@ export default defineComponent({
 
       &:hover {
         .room-cover {
-          transform: scale(1.4);
+          transform: scale(1.2);
         }
         .room-message {
           box-shadow: 0px 14px 24px -8px rgba(151, 0, 255, 0.3);

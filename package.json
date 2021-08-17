@@ -1,5 +1,5 @@
 {
-  "name": "gochat",
+  "name": "go-enjoy",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -17,7 +17,6 @@
     "@types/webpack-env": "^1.16.2",
     "compression-webpack-plugin": "^5.0.1",
     "core-js": "^3.6.5",
-    "register-service-worker": "^1.7.1",
     "vue": "^3.0.0",
     "vue-lottie": "^0.2.1",
     "vue-router": "^4.0.0-0",

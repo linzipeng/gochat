@@ -11,7 +11,9 @@
         <template v-slot:dropdown>
           <el-dropdown-menu class="about-menu operator-positon">
             <el-dropdown-item command="onMic">
-              <template v-if="attendeeMap?.get(streamId)?.mic === 2">
+              <template
+                v-if="$route.params.roomId !== '100000' && user?.mic === 2"
+              >
                 <icon name="icon_operation_mic_off"></icon>禁止发言
               </template>
               <template v-else>
@@ -24,14 +26,7 @@
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <span class="attendee-name">{{
-        attendeeMap?.get(streamId)?.nick_name
-      }}</span>
-      <icon
-        class="attendee-mic"
-        v-if="attendeeMap?.get(streamId)?.mic === 1"
-        name="icon_mic_off"
-      ></icon>
+      <span class="attendee-name">{{ user?.nick_name }}</span>
     </template>
     <div v-else-if="showStatus" class="anthor-media-status">
       <icon
@@ -44,8 +39,13 @@
       <p>帧率：{{ qualityState.FPS }}</p>
       <p>丢包率：{{ qualityState.lostRate }}</p>
     </div>
+    <icon
+      class="attendee-mic"
+      v-if="$route.params.roomId !== '100000' && user?.mic === 1"
+      name="icon_mic_off"
+    ></icon>
     <video
-      v-if="videoStatus === 'OPEN'"
+      v-show="$route.params.roomId === '100000' || user?.camera === 2"
       ref="video"
       :id="`video-${streamId}`"
       class="main-video"
@@ -54,10 +54,13 @@
         isAnchorVideo && { height: '100%', width: '100%', position: 'inherit' }
       "
       autoplay
-      :muted="$store.state.user.uid.toString() === streamId"
+      :muted="
+        $store.state.user.uid.toString() === streamId ||
+        $route.params.roomId === '100000'
+      "
       playsinline
     ></video>
-    <template v-else>
+    <template v-if="user?.camera === 1">
       <img
         class="mute-bg"
         :src="require('@/assets/person/' + picIndex + '-guest@2x.png')"
@@ -84,17 +87,19 @@ import {
   defineComponent,
   nextTick,
   onBeforeUnmount,
+  PropType,
   ref,
   toRefs,
   watch,
   watchEffect,
 } from "vue";
-import PubSub from "pubsub-js";
 import { useStore } from "vuex";
 import { zg } from "@/service/SDKServer";
 import icon from "./icon.vue";
 import { ZegoPlayStats } from "zego-express-engine-webrtc/sdk/code/zh/ZegoExpressEntity.web";
 import { MainStore } from "@/store/store";
+import { useRoute } from "vue-router";
+import { setRoomStream, setStatus } from "@/service/room";
 
 export default defineComponent({
   components: { icon },
@@ -105,8 +110,8 @@ export default defineComponent({
     picIndex: {
       type: String,
     },
-    attendeeMap: {
-      type: Map,
+    user: {
+      type: Object as PropType<User>,
     },
     showStatus: {
       type: Boolean,
@@ -114,12 +119,22 @@ export default defineComponent({
     isPlaying: {
       type: Boolean,
     },
+    isAnchor: {
+      type: Boolean,
+    },
+    createStream: {
+      type: Boolean,
+      default: () => {
+        return true;
+      },
+    },
   },
   setup(props, ctx) {
-    const { streamId, isPlaying, attendeeMap } = toRefs(props);
+    const { streamId, isPlaying, isAnchor, createStream } = toRefs(props);
     const store = useStore<MainStore>();
     const video = ref<HTMLVideoElement | null>(null);
     const speakerAudio = ref<HTMLAudioElement | null>(null);
+    const { params: routeParams } = useRoute();
 
     const qualityState = ref({
       frames: "0p",
@@ -128,23 +143,18 @@ export default defineComponent({
       lostRate: "0%",
     });
 
-    const isAnchor = computed(() => {
-      // 是否为主播本人
+    const isAnchorVideo = computed(() => {
       return (
-        store.state.room?.creator_id.toString() ===
-        store.state.user?.uid.toString()
+        store.state.room?.stream_id === streamId.value ||
+        routeParams.roomId === "100000"
       );
     });
-
-    const isAnchorVideo = computed(() => {
-      return store.state.room?.creator_id.toString() === streamId.value;
-    });
-    const videoStatus = ref<"OPEN" | "MUTE">("OPEN");
     let localStream: MediaStream;
 
     const referToVideo = function () {
       if (video.value) {
         video.value.pause();
+        video.value.srcObject = localStream;
         video.value.onloadeddata = function () {
           console.log("載入完畢！");
           const play = () => {
@@ -168,38 +178,111 @@ export default defineComponent({
           });
           window.dispatchEvent(event);
         };
-        video.value.srcObject = localStream;
       }
     };
 
-    watch(
-      () => store.state.cameraConfig.videoQuality,
-      async () => {
-        // 未推流时，切换分辨率
+    const stopCamera = watch(
+      () => store.state.cameraConfig,
+      async (current, before) => {
         if (
-          localStream &&
-          streamId.value === store.state.user.uid.toString() &&
-          isPlaying.value === false &&
-          isAnchor.value
+          (isAnchor.value && isAnchorVideo.value) ||
+          store.state.user.uid.toString() === streamId.value
         ) {
-          zg.destroyStream(localStream);
-          localStream = await zg.createStream({
-            camera: store.state.cameraConfig,
-          });
-          if (store.state.cameraConfig.actualVideoMuted) {
-            zg.mutePublishStreamVideo(
-              localStream,
-              store.state.cameraConfig.actualVideoMuted
-            );
+          if (
+            current.height !== before.height ||
+            current.width !== before.width ||
+            current.videoQuality !== before.videoQuality ||
+            current.bitrate !== before.bitrate ||
+            current.frameRate !== before.frameRate
+          ) {
+            // 分辨率
+            if (isPlaying.value) {
+              zg.setVideoConfig(localStream, {
+                width: current.width,
+                height: current.height,
+                frameRate: current.frameRate,
+                maxBitrate: current.bitrate,
+              });
+            } else {
+              zg.destroyStream(localStream);
+              localStream = await zg.createStream({
+                camera: store.state.cameraConfig,
+              });
+              if (store.state.cameraConfig.actualVideoMuted) {
+                zg.mutePublishStreamVideo(
+                  localStream,
+                  store.state.cameraConfig.actualVideoMuted
+                );
+              }
+              if (store.state.cameraConfig.actualAudioMuted) {
+                zg.mutePublishStreamAudio(
+                  localStream,
+                  store.state.cameraConfig.actualAudioMuted
+                );
+              }
+              referToVideo();
+              ctx.emit("localStream", localStream, streamId.value);
+            }
           }
-          if (store.state.cameraConfig.actualAudioMuted) {
-            zg.mutePublishStreamAudio(
-              localStream,
-              store.state.cameraConfig.actualAudioMuted
-            );
+          if (current.videoInput !== before.videoInput) {
+            // 摄像头
+            zg.useVideoDevice(localStream, current.videoInput as string);
           }
-          referToVideo();
-          ctx.emit("localStream", localStream, streamId.value);
+          if (current.audioInput !== before.audioInput) {
+            // 麦克风
+            zg.useAudioDevice(localStream, current.audioInput as string);
+          }
+          if (current.volume !== before.volume) {
+            // 麦克风声音
+            zg.setCaptureVolume(localStream, current.volume);
+          }
+          if (current.actualVideoMuted !== before.actualVideoMuted) {
+            // 关闭摄像头
+            zg.mutePublishStreamVideo(localStream, !!current.actualVideoMuted);
+          }
+          if (current.actualAudioMuted !== before.actualAudioMuted) {
+            // 关闭麦克风
+            zg.mutePublishStreamAudio(localStream, !!current.actualAudioMuted);
+          }
+        } else {
+          stopCamera();
+        }
+      },
+      {
+        deep: true,
+      }
+    );
+
+    const stopMixingAudio = watch(
+      () => store.state.mixingAudio,
+      (current, before) => {
+        if (isAnchor.value && isAnchorVideo.value) {
+          if (current.id !== before.id) {
+            if (speakerAudio.value) {
+              speakerAudio.value.pause();
+              if (isPlaying.value) {
+                zg.stopMixingAudio(streamId.value as string);
+              }
+              if (current.src) {
+                speakerAudio.value.src = current.src;
+                speakerAudio.value.crossOrigin = "anonymous";
+                speakerAudio.value.loop = true;
+                speakerAudio.value.play().then(() => {
+                  if (isPlaying.value) {
+                    zg.startMixingAudio(streamId.value as string, [
+                      speakerAudio.value as HTMLAudioElement,
+                    ]);
+                  }
+                });
+              }
+            }
+          } else if (current.volume !== before.volume) {
+            if (speakerAudio.value) {
+              speakerAudio.value.volume = current.volume / 100;
+            }
+          }
+        } else {
+          stopMixingAudio();
         }
       },
       {
@@ -215,19 +298,23 @@ export default defineComponent({
       }
     });
 
-    watch(
-      () => streamId.value,
-      async () => {
-        if (streamId.value) {
+    const finishInit = watch(
+      () => createStream.value,
+      async (val) => {
+        if (val) {
           await nextTick();
-          if (streamId.value !== store.state.user.uid.toString()) {
-            localStream = await zg.startPlayingStream(streamId.value as string);
-          } else {
+          if (
+            routeParams.roomId === "100000" ||
+            streamId.value === store.state.user.uid.toString()
+          ) {
+            // 主播未开播或者观众连麦
             localStream = await zg.createStream({
               camera: store.state.cameraConfig,
             });
             zg.setCaptureVolume(localStream, store.state.cameraConfig.volume);
             ctx.emit("localStream", localStream, streamId.value);
+          } else {
+            localStream = await zg.startPlayingStream(streamId.value as string);
           }
           referToVideo();
 
@@ -252,6 +339,7 @@ export default defineComponent({
               }
             );
           }
+          finishInit();
         }
       },
       {
@@ -259,63 +347,54 @@ export default defineComponent({
       }
     );
 
-    watch(
-      () => isPlaying.value,
-      (val) => {
-        if (val) {
-          if (isAnchor.value && isAnchorVideo.value) {
-            PubSub.subscribe(
-              streamId.value as string,
-              (
-                msg: string,
-                data: {
-                  type: string;
-                  playing: boolean;
-                  src: string;
-                  volume: number;
-                }
-              ) => {
-                if (data.type === "music") {
-                  if (speakerAudio.value) {
-                    speakerAudio.value.pause();
-                    zg.stopMixingAudio(streamId.value as string);
-                  }
-                  if (data.playing && speakerAudio.value) {
-                    speakerAudio.value.src = data.src;
-                    speakerAudio.value.crossOrigin = "anonymous";
-                    speakerAudio.value.loop = true;
-                    speakerAudio.value.play().then(() => {
-                      zg.startMixingAudio(streamId.value as string, [
-                        speakerAudio.value as HTMLAudioElement,
-                      ]);
-                      zg.setMixingAudioVolume(
-                        streamId.value as string,
-                        data.volume,
-                        speakerAudio.value as HTMLAudioElement
-                      );
-                    });
-                  }
-                } else if (data.type === "musicVolume") {
-                  if (speakerAudio.value) {
-                    zg.setMixingAudioVolume(
-                      streamId.value as string,
-                      data.volume,
-                      speakerAudio.value as HTMLAudioElement
-                    );
-                  }
-                } else if (data.type === "microVolume" && localStream) {
-                  zg.setCaptureVolume(localStream, data.volume);
-                }
-              }
-            );
+    const startPublishingStream = function () {
+      nextTick(() => {
+        const isSuccess = zg.startPublishingStream(
+          streamId.value as string,
+          localStream as MediaStream,
+          {
+            videoCodec: "VP8",
+          }
+        );
+        if (isSuccess) {
+          setRoomStream(
+            store.state.user.uid,
+            store.state.room.room_id,
+            streamId.value as string,
+          );
+          if (store.state.cameraConfig.actualVideoMuted) {
+            setStatus({
+              uid: store.state.user.uid,
+              room_id: store.state.room.room_id,
+              nick_name: store.state.user.nick_name,
+              target_uid: store.state.user.uid,
+              camera: 1,
+              type: 2,
+            });
+          }
+          if (store.state.cameraConfig.actualAudioMuted) {
+            setStatus({
+              uid: store.state.user.uid,
+              room_id: store.state.room.room_id,
+              nick_name: store.state.user.nick_name,
+              target_uid: store.state.user.uid,
+              mic: 1,
+              type: 1,
+            });
           }
         }
-      }
-    );
+      });
+    };
 
-    zg.on("remoteCameraStatusUpdate", (streamID, status) => {
-      if (streamID === streamId.value) {
-        videoStatus.value = status;
+    zg.on("publisherStateUpdate", (result) => {
+      if (
+        result.streamID === streamId.value &&
+        result.state === "PUBLISHING" &&
+        store.state.mixingAudio.src
+      ) {
+        zg.startMixingAudio(streamId.value as string, [
+          speakerAudio.value as HTMLAudioElement,
+        ]);
       }
     });
 
@@ -325,17 +404,15 @@ export default defineComponent({
           speakerAudio.value.pause();
         }
         zg.stopMixingAudio(streamId.value as string);
-        PubSub.unsubscribe(streamId.value);
       }
     });
 
     return {
       isAnchorVideo,
-      isAnchor,
       video,
-      videoStatus,
       qualityState,
       speakerAudio,
+      startPublishingStream,
     };
   },
 });
@@ -430,17 +507,17 @@ export default defineComponent({
     display: inline-block;
     z-index: 100;
   }
-  .attendee-mic {
-    position: absolute;
-    right: 8px;
-    bottom: 12px;
-    background: rgba(0, 0, 0, 0.2);
-    color: #e0dde3;
-    border-radius: 4px;
-    width: 22px;
-    height: 22px;
-    z-index: 100;
-  }
+}
+.attendee-mic {
+  position: absolute;
+  right: 8px;
+  bottom: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  color: #e0dde3;
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  z-index: 100;
 }
 .main-video {
   object-fit: cover;

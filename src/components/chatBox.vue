@@ -23,7 +23,7 @@
               <p class="message-fromUser">
                 <span
                   v-if="
-                    message?.fromUser.userID == $store.state.room.creator_id &&
+                    message?.fromUser.userID == $store.state.room.host_id &&
                     message?.fromUser.userID == $store.state.user.uid
                   "
                   class="anthor-tab"
@@ -32,7 +32,7 @@
                 {{ message?.fromUser.userName }}
                 <span
                   v-if="
-                    message?.fromUser.userID == $store.state.room.creator_id &&
+                    message?.fromUser.userID == $store.state.room.host_id &&
                     message?.fromUser.userID != $store.state.user.uid
                   "
                   class="anthor-tab"
@@ -63,9 +63,9 @@
           <i :class="chatArea.length > 0 ? 'abled-btn' : 'disabled-btn'"></i>
         </span>
       </el-tab-pane>
-      <el-tab-pane :label="`在线人数·${onlinePerson?.length}`" name="online">
+      <el-tab-pane :label="`在线人数·${attendeeList?.length}`" name="online">
         <div
-          v-for="person in onlinePerson"
+          v-for="person in attendeeList"
           :key="person.uid"
           class="online-item"
         >
@@ -87,12 +87,7 @@
               我（自己）
             </template>
             <template v-else-if="person.role === 3"> 主播 </template>
-            <span
-              v-else-if="
-                attendeeList.some((attendee) => attendee.uid === person.uid)
-              "
-              class="onstage"
-            >
+            <span v-else-if="person.onstage_state === 2" class="onstage">
               连麦中...
             </span>
             <template v-else-if="isAnchor">
@@ -122,20 +117,13 @@ import {
   ref,
   toRefs,
   watch,
-  watchEffect,
 } from "vue";
-import { useRoute } from "vue-router";
-import {
-  getAttendeeList,
-  inviteOnstage,
-  responseOnstageInvite,
-} from "@/service/room";
-import router from "@/router";
+import { onstageInviteAction } from "@/service/room";
 import { useStore } from "vuex";
 import { MainStore } from "@/store/store";
 import { zg } from "@/service/SDKServer";
 import { ZegoBroadcastMessageInfo } from "zego-express-engine-webrtm/sdk/code/zh/ZegoExpressEntity";
-import { ElMessageBox, ElMessage } from "element-plus";
+import { ElMessage } from "element-plus";
 
 interface enterOrOutRoom {
   updateType: "ADD" | "DELETE";
@@ -146,18 +134,11 @@ interface enterOrOutRoom {
 
 export default defineComponent({
   props: {
-    isLogin: {
-      type: Boolean,
-    },
     audienceStreamId: {
       type: Object as PropType<Array<string>>,
       default: () => {
         return [] as Array<string>;
       },
-    },
-    tryingConnected: {
-      type: Boolean,
-      require: true,
     },
     attendeeList: {
       type: Object as PropType<Array<Attendee>>,
@@ -166,11 +147,12 @@ export default defineComponent({
         return [] as Array<Attendee>;
       },
     },
+    inviteList: {
+      type: Object as PropType<Array<number>>,
+    },
   },
   setup(props, rtx) {
-    const { params: routeParams } = useRoute();
-    const { isLogin, audienceStreamId, tryingConnected, attendeeList } =
-      toRefs(props);
+    const { audienceStreamId } = toRefs(props);
     const store = useStore<MainStore>();
     const chatArea = ref("");
     const messageSendLoading = ref(false);
@@ -184,39 +166,28 @@ export default defineComponent({
       },
     ] as Array<ZegoBroadcastMessageInfo | enterOrOutRoom>);
 
-    const onlinePerson = ref<Array<Attendee>>([]);
-    const inviteList = ref<Array<number>>([]);
-    const raiseHandList = ref<Array<number>>([]);
-
     const isAnchor = computed(() => {
       // 是否为主播本人
-      return store.state.room?.creator_id === store.state.user?.uid;
+      return store.state.room?.host_id === store.state.user?.uid;
     });
 
-    const stopClearInviteList = watch(
-      audienceStreamId.value,
-      (streamIdList) => {
-        if (isAnchor.value) {
-          inviteList.value = inviteList.value.filter((item) => {
-            return streamIdList.indexOf(item.toString()) === -1;
-          });
-        } else {
-          stopClearInviteList();
-        }
-      },
-      {
-        deep: true,
-      }
-    );
-
     const invite = function (uid: number) {
-      if (attendeeList.value.length < 3) {
-        inviteOnstage(store.state.user.uid, routeParams.roomId as string, uid)
+      if (audienceStreamId.value.length < 3) {
+        onstageInviteAction(
+          store.state.user.uid,
+          store.state.room.room_id,
+          uid,
+          store.state.user.nick_name,
+          1,
+        )
           .then(() => {
-            inviteList.value.push(uid);
+            rtx.emit("updateInviteList", "add", [uid]);
           })
           .catch((err) => {
-            console.log(err);
+            ElMessage({
+              customClass: "alert-box",
+              message: err,
+            });
           });
       } else {
         ElMessage({
@@ -229,7 +200,10 @@ export default defineComponent({
     const sendMessage = function () {
       if (chatArea.value.length > 0) {
         messageSendLoading.value = true;
-        zg.sendBroadcastMessage(routeParams.roomId as string, chatArea.value)
+        zg.sendBroadcastMessage(
+          store.state.room.room_id,
+          JSON.stringify({ cmd: 10001, message: chatArea.value })
+        )
           .then(({ errorCode }) => {
             if (errorCode === 0) {
               messageList.value.push({
@@ -265,149 +239,27 @@ export default defineComponent({
 
     const onCallBack = function () {
       zg.on("IMRecvBroadcastMessage", (roomID, messageInfoList) => {
-        if (routeParams.roomId === roomID) {
-          messageList.value.push(...messageInfoList);
-          chatBoxGotoBottom();
-        }
-      });
-      zg.on("roomExtraInfoUpdate", (roomID, roomExtraInfoList) => {
-        if (routeParams.roomId === roomID) {
-          let updateAttendee = false;
-          roomExtraInfoList.forEach((item) => {
-            try {
-              const { cmd, data } = JSON.parse(item?.value);
-              if (cmd === 6002) {
-                onlinePerson.value.forEach((person) => {
-                  data.users.forEach((user: Attendee) => {
-                    if (user.uid === person.uid) {
-                      person = user;
-                    }
-                    if (
-                      !updateAttendee &&
-                      attendeeList.value.some(
-                        (attendee) => attendee.uid === user.uid
-                      )
-                    ) {
-                      // 台上观众，同时需要更新attendee
-                      updateAttendee = true;
-                    }
-                  });
-                });
-                if (data.operator_uid !== store.state.user.uid) {
-                  // 若为本客户端发出的请求信息，则不处理
-                  if (data.type === 1) {
-                    if (isAnchor.value) {
-                      // 主播端需要处理举手操作
-                      data.users.forEach((user: Attendee) => {
-                        if (user.raise_hand === 2) {
-                          if (!raiseHandList.value.includes(user.uid)) {
-                            // 不包含在举手列表中
-                            raiseHandList.value.push(user.uid);
-                          }
-                          ElMessageBox.confirm(
-                            `${user.nick_name} 申请与你连麦`,
-                            "申请连麦",
-                            {
-                              customClass: "message-box",
-                              confirmButtonText: "同意",
-                              cancelButtonText: "拒绝",
-                              center: true,
-                              showClose: false,
-                              cancelButtonClass:
-                                "message-cancel-btn border-radius-5 ",
-                              confirmButtonClass:
-                                "zg-button small-button border-radius-5 ",
-                            }
-                          )
-                            .then(() => {
-                              if (raiseHandList.value.includes(user.uid)) {
-                                invite(user.uid);
-                              } else {
-                                ElMessage({
-                                  customClass: "alert-box",
-                                  message: user.nick_name + `已取消连麦申请`,
-                                });
-                              }
-                            })
-                            .catch(() => {
-                              if (raiseHandList.value.includes(user.uid)) {
-                                zg.sendCustomCommand(
-                                  routeParams.roomId as string,
-                                  JSON.stringify({ cmd: 6004 }),
-                                  [user.uid.toString()]
-                                );
-                              } else {
-                                ElMessage({
-                                  customClass: "alert-box",
-                                  message: user.nick_name + `已取消连麦申请`,
-                                });
-                              }
-                            });
-                        } else if (user.raise_hand === 1 && user.role === 1) {
-                          // 取消连麦
-                          if (raiseHandList.value.includes(user.uid)) {
-                            raiseHandList.value.splice(
-                              raiseHandList.value.indexOf(user.uid),
-                              1
-                            );
-                          }
-                        }
-                      });
-                    } else if (
-                      data.operator_uid.toString() ===
-                      store.state.room.creator_id
-                    ) {
-                      data.users.forEach((user: Attendee) => {
-                        if (user.uid === store.state.user.uid) {
-                          if (user.onstage_state === 2) {
-                            // 主播同意连麦
-                            rtx.emit("connected", true);
-                          }
-                        }
-                      });
-                    }
-                  }
+        if (store.state.room.room_id === roomID) {
+          messageInfoList.forEach((messageInfo) => {
+            if (messageInfo.fromUser.userID !== "system") {
+              try {
+                const { cmd, message } = JSON.parse(messageInfo.message);
+                if (cmd === 10001) {
+                  messageInfo.message = message;
+                  messageList.value.push(messageInfo);
                 }
-              } else if (cmd === 6006) {
-                ElMessageBox.alert("直播间已经关闭！返回首页！", {
-                  center: true,
-                  showClose: false,
-                  customClass: "message-box",
-                  confirmButtonClass: "zg-button small-button border-radius-5 ",
-                  confirmButtonText: "确定",
-                }).finally(() => {
-                  router.push({ path: "/" });
-                });
+              } catch (error) {
+                console.log(error);
               }
-            } catch (error) {
-              console.log(error);
             }
           });
-          if (updateAttendee) {
-            rtx.emit("updateAttendee");
-          }
-        }
-      });
-      zg.on("roomStreamUpdate", (roomID) => {
-        if (routeParams.roomId === roomID) {
-          getAttendeeList(
-            routeParams.roomId as string,
-            store.state.user.uid
-          ).then((data) => {
-            onlinePerson.value = data as Array<Attendee>;
-          });
+          chatBoxGotoBottom();
         }
       });
 
       let isInit = true;
       zg.on("roomUserUpdate", (roomID, updateType, userList) => {
-        if (routeParams.roomId === roomID) {
-          getAttendeeList(
-            routeParams.roomId as string,
-            store.state.user.uid
-          ).then((data) => {
-            onlinePerson.value = data as Array<Attendee>;
-          });
+        if (store.state.room.room_id === roomID) {
           if (!isInit) {
             userList.forEach((user) => {
               messageList.value.push({
@@ -422,124 +274,7 @@ export default defineComponent({
           isInit = false;
         }
       });
-      zg.on("IMRecvCustomCommand", (roomID, fromUser, command) => {
-        if (routeParams.roomId === roomID) {
-          if (fromUser.userID === "system" && fromUser.userName === "system") {
-            try {
-              const { cmd, data } = JSON.parse(command);
-              if (store.state.user.uid === data.target_uid) {
-                if (cmd === 6004) {
-                  if (tryingConnected.value) {
-                    responseOnstageInvite(
-                      data.target_uid,
-                      roomID,
-                      data.invite_token,
-                      2,
-                      audienceStreamId.value?.length
-                    ).then((bool) => {
-                      if (bool) {
-                        rtx.emit("connected", true);
-                      }
-                    });
-                  } else {
-                    // 代表邀请上台
-                    ElMessageBox.confirm(
-                      "主播邀请您连麦？是否同意",
-                      "连麦邀请",
-                      {
-                        confirmButtonText: "同意",
-                        cancelButtonText: "拒绝",
-                        center: true,
-                        showClose: false,
-                        customClass: "message-box",
-                        cancelButtonClass:
-                          "message-cancel-btn border-radius-5 ",
-                        confirmButtonClass:
-                          "zg-button small-button border-radius-5 ",
-                      }
-                    )
-                      .then(() => {
-                        responseOnstageInvite(
-                          data.target_uid,
-                          roomID,
-                          data.invite_token,
-                          2,
-                          audienceStreamId.value?.length
-                        ).then((bool) => {
-                          if (bool) {
-                            rtx.emit("connected", true);
-                          }
-                        });
-                      })
-                      .catch(() => {
-                        responseOnstageInvite(
-                          data.target_uid,
-                          roomID,
-                          data.invite_token,
-                          1,
-                          audienceStreamId.value?.length
-                        );
-                      });
-                  }
-                } else if (cmd === 6005) {
-                  inviteList.value.splice(
-                    inviteList.value.indexOf(data.uid),
-                    1
-                  );
-                  ElMessage({
-                    customClass: "alert-box",
-                    message: `${data.nick_name} 已拒绝连麦邀请`,
-                  });
-                }
-              }
-            } catch (error) {
-              console.log(error);
-            }
-          } else if (
-            fromUser.userID === store.state.room.creator_id.toString()
-          ) {
-            // 主播私发请求
-            try {
-              const { cmd, data } = JSON.parse(command);
-              if (cmd === 6004) {
-                //主播拒绝连麦申请，放下举手
-                rtx.emit("connected", false);
-              } else if (cmd === 10000) {
-                if (data.type === 2) {
-                  // 下麦
-                  ElMessage({
-                    customClass: "alert-box",
-                    message: "你已被主播抱下麦",
-                  });
-                  rtx.emit("destroyStream");
-                } else if (data.type === 1) {
-                  ElMessage({
-                    customClass: "alert-box",
-                    message:
-                      data.mic === 1 ? "你已被主播禁言" : "你已被主播解除禁言",
-                  });
-                  rtx.emit("updateMic", data.mic);
-                }
-              }
-            } catch (error) {
-              console.log(error);
-            }
-          }
-        }
-      });
     };
-
-    const stop = watchEffect(() => {
-      if (isLogin.value) {
-        getAttendeeList(routeParams.roomId as string, store.state.user.uid)
-          .then((data) => {
-            onlinePerson.value = data as Array<Attendee>;
-          })
-          .finally(() => {
-            stop();
-          });
-      }
-    });
 
     onCallBack();
 
@@ -547,10 +282,8 @@ export default defineComponent({
       chatArea,
       activeName,
       messageList,
-      onlinePerson,
       messageSendLoading,
       isAnchor,
-      inviteList,
       invite,
       sendMessage,
       placeholder,

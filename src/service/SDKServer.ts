@@ -3,8 +3,8 @@ import { App } from "vue";
 import { ZegoExpressEngine } from "zego-express-engine-webrtc";
 
 export const zg = new ZegoExpressEngine(
-  3127407533,
-  "wss://webliveroom3127407533-api.zego.im/ws"
+  508151439,
+  "wss://webliveroom508151439-api.zego.im/ws"
 );
 
 zg.setDebugVerbose(false);

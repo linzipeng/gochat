@@ -13,11 +13,18 @@ interface SpeakerConfig extends ZegoDeviceInfo {
   volume: number;
 }
 
+interface MixingAudio {
+  src: string;
+  title: string;
+  id: string;
+  volume: number;
+}
+
 export interface MainStore {
   user: User;
   room: Room;
-  token: string;
   cameraConfig: CameraConfig;
   speakerDevice: SpeakerConfig;
+  mixingAudio: MixingAudio;
   browserIsSupport: boolean;
 }

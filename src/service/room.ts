@@ -2,25 +2,77 @@ import { api } from "@/api/api";
 import { zg } from "@/service/SDKServer";
 import keepLiving from "@/service/keepLiving";
 import { ElMessage } from "element-plus";
+import { getToken } from "./user";
 
 // 创建房间
 export const createRoom = function (
-  uid: number,
+  user: User,
   subject = "默认房间名"
-): Promise<Room> {
+): Promise<{ user_info: User; room_info: Room }> {
+  const tooltip = function (message?: string) {
+    ElMessage({
+      showClose: false,
+      customClass: "alert-box",
+      message: message || "创建失败，请重试",
+    });
+  };
   return new Promise((resolve, reject) => {
-    api("createRoom", { uid, subject })
+    api("createRoom", {
+      subject,
+      cover_img: user.avatar,
+      nick_name: user.nick_name,
+      avatar: user.avatar,
+    })
       .then(({ ret, data }: RSP) => {
         if (ret && ret.code === 0) {
-          console.log("创建房间成功！", data);
-          resolve(data);
+          const { user_info: userInfo, room_info: roomInfo } = data as {
+            user_info: User;
+            room_info: Room;
+          };
+          getToken(userInfo.uid)
+            .then((token) => {
+              // 第三步登录即构SDK
+              zg.loginRoom(
+                roomInfo.room_id,
+                token,
+                {
+                  userID: userInfo.uid.toString(),
+                  userName: userInfo.nick_name,
+                },
+                { userUpdate: true }
+              )
+                .then(() => {
+                  // 第四步用户跟开发者的server心跳连接
+                  keepLiving({ uid: userInfo.uid, roomId: roomInfo.room_id });
+                  resolve(data);
+                })
+                .catch(() => {
+                  closeRoom(userInfo.uid, roomInfo.room_id);
+                  reject();
+                });
+            })
+            .catch(() => {
+              closeRoom(userInfo.uid, roomInfo.room_id);
+              reject();
+            });
         } else {
+          tooltip();
           reject();
         }
       })
       .catch(() => {
+        tooltip();
         reject();
       });
+  });
+};
+
+// 关闭房间
+export const closeRoom = function (uid: number, room_id: string): void {
+  api("closeRoom", { uid, room_id }).then(({ ret }) => {
+    if (ret?.code === 0) {
+      console.log("房间关闭成功！");
+    }
   });
 };
 
@@ -86,30 +138,31 @@ export const getStatefulList = function (
   });
 };
 
-interface userInfo {
-  uid: number;
-  room_id: string;
-  target_uid: number;
-  mic?: 1 | 2;
-  on_stage?: 1 | 2;
-  type: 1 | 2 | 3;
-}
-
-export const setUserInfo = function ({
+export const setStatus = function ({
   uid,
   room_id,
+  nick_name,
   target_uid,
   mic,
-  on_stage,
+  camera,
   type,
-}: userInfo): Promise<void> {
+}: {
+  uid: number;
+  room_id: string;
+  nick_name: string;
+  target_uid: number;
+  mic?: 1 | 2;
+  camera?: 1 | 2;
+  type: 1 | 2 | 3; // 1.mic操作  2. camera操作 3. 关闭连麦
+}): Promise<void> {
   return new Promise((resolve, reject) => {
-    api("setUserInfo", {
+    api("setStatus", {
       uid,
       room_id,
+      nick_name,
       target_uid,
       mic,
-      on_stage,
+      camera,
       type,
     })
       .then(({ ret }) => {
@@ -125,18 +178,20 @@ export const setUserInfo = function ({
   });
 };
 
-export const operateRaiseHand = function (
+export const onstageRequestAction = function (
   uid: number,
+  nick_name: string,
+  target_uid: number,
   room_id: string,
-  type: 1 | 2
+  action: 1 | 2 | 3 | 4, // 1.申请 2.取消申请 3. 接受申请 4. 拒绝申请
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    api("operateRaiseHand", { uid, room_id, type })
+    api("onstageRequestAction", { uid, nick_name, room_id, target_uid, action })
       .then(({ ret }) => {
         if (ret.code === 0) {
           resolve();
         } else {
-          reject();
+          reject(ret.message);
         }
       })
       .catch(() => {
@@ -145,13 +200,15 @@ export const operateRaiseHand = function (
   });
 };
 
-export const inviteOnstage = function (
+export const onstageInviteAction = function (
   uid: number,
   room_id: string,
-  target_uid: number
+  target_uid: number,
+  nick_name: string,
+  action: 1 | 2 | 3 | 4, // 1.邀请 2.取消邀请 3. 接受邀请 4. 拒绝邀请
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    api("inviteOnstage", { uid, room_id, target_uid })
+    api("onstageInviteAction", { uid, room_id, target_uid, nick_name, action })
       .then(({ ret }) => {
         if (ret.code === 0) {
           resolve();
@@ -167,11 +224,12 @@ export const inviteOnstage = function (
 
 // 拉取房间列表
 export const getRoomList = function (
-  uid: number,
-  count = 1000
+  count = 1000,
+  direct = 1, //方向，0：从新到旧，1:从旧到新
+  from = "1" // cursor，拉取起始点
 ): Promise<Room[]> {
   return new Promise((resolve, reject) => {
-    api("roomList", { uid, count })
+    api("roomList", { count, direct, from })
       .then(({ ret, data }: RSP) => {
         if (ret?.code === 0) {
           resolve(data.room_list);
@@ -187,17 +245,13 @@ export const getRoomList = function (
 
 // 拉取成员列表
 export const getAttendeeList = function (
-  room_id: string,
   uid: number,
-  page = 1,
-  page_size = 1000
-): Promise<Array<Attendee>> {
+  room_id: string,
+): Promise<Array<User>> {
   return new Promise((resolve) => {
     api("getAttendeeList", {
       room_id,
       uid,
-      page,
-      page_size,
     }).then(({ ret, data }) => {
       if (ret?.code === 0) {
         // 排序：主播-自己-台上观众-台下观众
@@ -241,35 +295,61 @@ export const getAttendeeList = function (
   });
 };
 
+// 设置主播流id
+export const setRoomStream = function (
+  uid: number,
+  room_id: string,
+  stream_id: string
+): void {
+  api("setRoomStream", { uid, room_id, stream_id }).then(({ ret }) => {
+    if (ret.code === 0) {
+      console.log("设置主播流id成功！");
+    }
+  });
+};
+
 // 登录房间
-export const loginRoom = function (
-  user: User,
-  roomId: string,
-  token: string
-): Promise<RSP> {
+export const loginRoom = function (user: User, roomId: string): Promise<RSP> {
   return new Promise((resolve, reject) => {
     // 第一步开发者在自己的server记录登录者
-    api("loginRoom", { uid: user.uid, room_id: roomId }).then(
-      ({ ret, data }: RSP) => {
-        if (ret?.code === 0 || ret?.code === 80004) {
-          // 第二步登录即构SDK
-          zg.loginRoom(
-            roomId,
-            token,
-            {
-              userID: user?.uid?.toString(),
-              userName: user.nick_name,
-            },
-            { userUpdate: true }
-          )
-            .then(() => {
-              // 第三步用户跟开发者的server心跳连接
-              keepLiving({ uid: user.uid, roomId });
-              resolve({ ret, data });
+    api("loginRoom", {
+      room_id: roomId,
+      nick_name: user.nick_name,
+      avatar: user.avatar,
+    })
+      .then(({ ret, data }: RSP) => {
+        if (ret?.code === 0) {
+          const userInfo = data.user_info as User;
+          // 第二步获取token
+          getToken(userInfo.uid)
+            .then((token) => {
+              // 第三步登录即构SDK
+              zg.loginRoom(
+                roomId,
+                token,
+                {
+                  userID: userInfo.uid.toString(),
+                  userName: user.nick_name,
+                },
+                { userUpdate: true }
+              )
+                .then(() => {
+                  // 第三步用户跟开发者的server心跳连接
+                  keepLiving({ uid: userInfo.uid, roomId });
+                  resolve({ ret, data });
+                })
+                .catch(() => {
+                  logoutRoom(userInfo.uid, roomId);
+                  reject({
+                    ret: { code: 81000, message: "直播间已经关闭！返回首页！" },
+                    data: null,
+                  });
+                });
             })
             .catch(() => {
+              logoutRoom(userInfo.uid, roomId);
               reject({
-                ret: { code: 81000, message: "直播间已经关闭！返回首页！" },
+                ret: { code: 81000, message: "获取token异常！返回首页！" },
                 data: null,
               });
             });
@@ -287,8 +367,13 @@ export const loginRoom = function (
             data: null,
           });
         }
-      }
-    );
+      })
+      .catch(() => {
+        reject({
+          ret: { code: 81000, message: "直播间已经关闭！返回首页！" },
+          data: null,
+        });
+      });
   });
 };
 
@@ -300,9 +385,8 @@ export const logoutRoom = async function (
   zg.logoutRoom();
   await api("quitRoom", { uid, room_id }).then(({ ret }: RSP) => {
     if (ret?.code === 0) {
-      sessionStorage.removeItem("room");
       // 断开房间心跳
-      keepLiving({ uid: uid });
+      keepLiving.stop();
     }
   });
 };

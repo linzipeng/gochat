@@ -1,4 +1,4 @@
-# gochat
+# go-enjoy
 
 ## Project setup
 ```

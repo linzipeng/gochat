@@ -11,18 +11,19 @@
           <div v-for="item in music" :key="item.id">
             <div
               class="music-btn"
-              :class="{ 'is-active': isActive === item.id }"
+              :class="{
+                'is-active': $store.state.mixingAudio.id === item.id,
+              }"
               @click="playMusic(item)"
             >
               <div class="music-icon"></div>
               <lottie
-                v-if="isActive === item.id"
+                v-if="$store.state.mixingAudio.id === item.id"
                 :width="19"
                 :height="19"
                 :options="options"
                 class="music-playing"
               ></lottie>
-              <!-- <div v-if="isActive === item.id" class="music-playing"></div> -->
             </div>
             <div>{{ item.title }}</div>
           </div>
@@ -36,11 +37,15 @@
             min="0"
             max="100"
             step="1"
-            v-model="musicVolume"
+            :value="$store.state.mixingAudio.volume"
+            @change="updateMixingVolume"
           />
-          <div class="blue-bg" :style="`width:${musicVolume}%`"></div>
+          <div
+            class="blue-bg"
+            :style="`width:${$store.state.mixingAudio.volume}%`"
+          ></div>
         </div>
-        <span>{{ musicVolume }}</span>
+        <span>{{ $store.state.mixingAudio.volume }}</span>
       </div>
       <div class="volume">
         <div>人声音量</div>
@@ -50,42 +55,38 @@
             min="0"
             max="100"
             step="1"
-            v-model="microVolume"
+            :value="$store.state.cameraConfig.volume"
+            @change="updateCamerasVolume"
           />
-          <div class="blue-bg" :style="`width:${microVolume}%`"></div>
+          <div
+            class="blue-bg"
+            :style="`width:${$store.state.cameraConfig.volume}%`"
+          ></div>
         </div>
-        <span>{{ microVolume }}</span>
+        <span>{{ $store.state.cameraConfig.volume }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, toRefs, watch } from "vue";
+import { defineComponent, ref } from "vue";
 import animationData from "@/assets/json/jump.json";
 import lottie from "@/components/lottie.vue";
-import PubSub from "pubsub-js";
+import { useStore } from "vuex";
+import { MainStore } from "@/store/store";
 
 export default defineComponent({
-  props: {
-    streamId: {
-      type: String,
-    },
-  },
   components: {
     lottie,
   },
-  setup(props) {
-    const { streamId } = toRefs(props);
-    const musicVolume = ref(50);
-    const microVolume = ref(50);
+  setup() {
+    const store = useStore<MainStore>();
     const options = {
       loop: true,
       autoplay: true,
       animationData: animationData,
     };
-    let musicVolumeTimerOut: number;
-    let microVolumeTimerOut: number;
     const music = [
       { id: "happy", title: "欢快", src: require("@/assets/music/Happy.mp3") },
       {
@@ -99,56 +100,49 @@ export default defineComponent({
         src: require("@/assets/music/Dream.mp3"),
       },
     ];
-    const isActive = ref<null | "happy" | "lovely" | "dream">(null);
 
-    const playMusic = function (item: { id: "happy" | "lovely" | "dream" }) {
-      const params = {
-        ...item,
-        playing: isActive.value !== item.id,
-        type: "music",
-        volume: musicVolume.value,
-      };
-      isActive.value = isActive.value === item.id ? null : item.id;
-      PubSub.publish(streamId.value as string, params);
+    const playMusic = function (item: {
+      id: "happy" | "lovely" | "dream";
+      src: string;
+      title: string;
+    }) {
+      const mixingAudio = JSON.parse(JSON.stringify(store.state.mixingAudio));
+      if (mixingAudio.id === item.id) {
+        mixingAudio.src = "";
+        mixingAudio.id = "";
+        mixingAudio.title = "";
+      } else {
+        mixingAudio.src = item.src;
+        mixingAudio.id = item.id;
+        mixingAudio.title = item.title;
+      }
+      store.commit("setter", { key: "mixingAudio", value: mixingAudio });
     };
 
-    watch(
-      () => musicVolume.value,
-      (val) => {
-        if (musicVolumeTimerOut) {
-          clearTimeout(musicVolumeTimerOut);
-          musicVolumeTimerOut = 0;
-        }
-        musicVolumeTimerOut = window.setTimeout(() => {
-          PubSub.publish(streamId.value as string, {
-            type: "musicVolume",
-            volume: Number(val),
-          });
-        }, 500);
+    const updateCamerasVolume = function (event: Event) {
+      const input = event.currentTarget as HTMLInputElement;
+      if (input) {
+        const cameraConfig = JSON.parse(
+          JSON.stringify(store.state.cameraConfig));
+        cameraConfig.volume = parseInt(input.value);
+        store.commit("setter", { key: "cameraConfig", value: cameraConfig });
       }
-    );
-    watch(
-      () => microVolume.value,
-      (val) => {
-        if (microVolumeTimerOut) {
-          clearTimeout(microVolumeTimerOut);
-          microVolumeTimerOut = 0;
-        }
-        microVolumeTimerOut = window.setTimeout(() => {
-          PubSub.publish(streamId.value as string, {
-            type: "microVolume",
-            volume: Number(val),
-          });
-        }, 500);
+    };
+
+    const updateMixingVolume = function (event: Event) {
+      const input = event.currentTarget as HTMLInputElement;
+      if (input) {
+        const mixingAudio = JSON.parse(JSON.stringify(store.state.mixingAudio));
+        mixingAudio.volume = parseInt(input.value);
+        store.commit("setter", { key: "mixingAudio", value: mixingAudio });
       }
-    );
+    };
 
     return {
-      musicVolume,
-      microVolume,
       music,
-      isActive,
       options,
+      updateCamerasVolume,
+      updateMixingVolume,
       playMusic,
     };
   },

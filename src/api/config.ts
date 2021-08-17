@@ -14,86 +14,86 @@ export interface Api {
 export const api: Api = {
   getToken: {
     label: "获取token",
-    url: "/chat_room/misc/get_web_token",
+    url: "/live_show/misc/get_web_token",
     method: "post",
     data: {
       ttl: 10000000, // 过期时间
     },
   },
-  login: {
-    label: "登录",
-    url: "/chat_room/login",
-    method: "post",
-  },
-  logout: {
-    label: "退出登录",
-    url: "/chat_room/login",
-    method: "post",
-  },
   roomList: {
     label: "拉取房间列表",
-    url: "/chat_room/get_room_list",
+    url: "/live_show/get_room_list",
     method: "post",
   },
   createRoom: {
     label: "创建房间",
-    url: "/chat_room/create_room",
+    url: "/live_show/create_room",
     method: "post",
   },
   loginRoom: {
     label: "进入房间",
-    url: "/chat_room/login_room",
+    url: "/live_show/login_room",
     ignoreError: true,
+    method: "post",
+  },
+  getStatefulList: {
+    label: "拉取连麦人员列表",
+    url: "/live_show/get_stateful_list",
+    method: "post",
+  },
+  getOnlineInfo: {
+    label: "获取房间在线人数信息",
+    url: "/live_show/get_online_info",
     method: "post",
   },
   quitRoom: {
     label: "离开房间",
-    url: "/chat_room/quit_room",
+    url: "/live_show/quit_room",
     method: "post",
   },
   closeRoom: {
     label: "关闭房间",
-    url: "/chat_room/close_room",
+    url: "/live_show/close_room",
     method: "post",
   },
-  getAttendeeList: {
-    label: "拉取成员列表",
-    url: "/chat_room/get_attendee_list",
-    method: "post",
-  },
-  getRaiseHandList: {
-    label: "拉取举手列表",
-    url: "/chat_room/get_raise_hand_list",
-    method: "post",
-  },
-  getStatefulList: {
-    label: "拉取台上用户列表",
-    url: "/chat_room/get_stateful_list",
-    method: "post",
-  },
-  operateRaiseHand: {
-    label: "举手操作",
-    url: "/chat_room/operate_raise_hand",
-    method: "post",
-  },
-  setUserInfo: {
-    label: "设置用户属性",
-    url: "/chat_room/set_user_info",
-    method: "post",
-  },
-  inviteOnstage: {
-    label: "邀请上台",
-    url: "/chat_room/invite_onstage",
-    method: "post",
-  },
-  responseOnstageInvite: {
-    label: "回应邀请",
-    url: "/chat_room/response_onstage_invite",
+  setStatus: {
+    label: "设置状态",
+    url: "/live_show/set_status",
     method: "post",
   },
   heartbeat: {
     label: "心跳",
-    url: "/chat_room/heartbeat",
+    url: "/live_show/heartbeat",
+    method: "post",
+  },
+  onstageRequestAction: {
+    label: "连麦申请/取消/接受/拒绝",
+    url: "/live_show/onstage_request_action",
+    method: "post",
+  },
+  getOnstageReqList: {
+    label: "获取连麦申请列表",
+    url: "/live_show/get_onstage_req_list",
+    method: "post",
+  },
+  setRoomStream: {
+    label: "设置主播流id",
+    url: "/live_show/set_room_stream",
+    method: "post",
+  },
+  switchRoom: {
+    label: "切换房间",
+    url: "/live_show/switch_room",
+    method: "post",
+  },
+  onstageInviteAction: {
+    label: "连麦邀请/取消/接受/拒绝",
+    url: "/live_show/onstage_invite_action",
+    method: "post",
+  },
+  getAttendeeList: {
+    label: "获取成员列表",
+    url: "/live_show/get_attendee_list",
     method: "post",
   },
 };

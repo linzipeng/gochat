@@ -6,16 +6,20 @@ const initState: MainStore = {
     uid: 0,
     nick_name: "",
     avatar: "",
+    role: 1,
+    login_timestamp: 0,
+    mic: 1,
+    camera: 1,
+    onstage_state: 1,
   },
-  token: "",
   room: {
     room_id: "",
     subject: "",
-    create_time: "",
-    creator_name: "",
-    creator_id: 0,
-    online_count: "",
-    on_stage_count: "",
+    online: 0,
+    cover_img: "",
+    stream_id: "",
+    host_id: 0,
+    create_time: 0,
   },
   cameraConfig: {
     videoInput: "",
@@ -23,11 +27,19 @@ const initState: MainStore = {
     video: true,
     audio: true,
     videoQuality: 2,
+    actualAudioMuted: false,
+    actualVideoMuted: false,
     volume: 50,
   },
   speakerDevice: {
     deviceID: "",
     deviceName: "",
+    volume: 50,
+  },
+  mixingAudio: {
+    src: "",
+    title: "",
+    id: "",
     volume: 50,
   },
   browserIsSupport: true,
@@ -36,11 +48,15 @@ const initState: MainStore = {
 export default createStore<MainStore>({
   state: initState,
   mutations: {
-    setter<T extends keyof MainStore>(
+    setter<T extends keyof MainStore, N extends keyof MainStore[T]>(
       state: MainStore,
-      payload: { key: T; value: MainStore[T] }
+      payload: { key: T; innerKey: N; value: MainStore[T] | MainStore[T][N] }
     ) {
-      state[payload.key] = payload.value;
+      if (payload.innerKey) {
+        state[payload.key][payload.innerKey] = payload.value as MainStore[T][N];
+      } else {
+        state[payload.key] = payload.value as MainStore[T];
+      }
     },
   },
   actions: {},

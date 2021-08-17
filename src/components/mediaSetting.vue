@@ -1,5 +1,5 @@
 <template>
-  <div class="media-setting" v-if="show">
+  <div class="media-setting">
     <div class="media-setting-header">
       <span> 设置 </span>
       <icon
@@ -29,7 +29,11 @@
           <div class="media-label">媒体设置</div>
           <div>
             <div class="media-select-box">摄像头</div>
-            <el-select v-model="cameras.value" @change="updateCameras">
+            <el-select
+              v-if="cameras.options.length"
+              v-model="cameras.value"
+              @change="updateCameras"
+            >
               <el-option
                 v-for="item in cameras.options"
                 :value="item.deviceID"
@@ -37,10 +41,18 @@
                 :key="item.deviceID"
               ></el-option>
             </el-select>
+            <div v-else class="disable-select" style="width: 256px">
+              <icon name="icon_fail"></icon>
+              {{ cameras.errMsg }}
+            </div>
           </div>
           <div>
             <div class="media-select-box">麦克风</div>
-            <el-select v-model="microphones.value" @change="updateMicrophones">
+            <el-select
+              v-if="microphones.options.length"
+              v-model="microphones.value"
+              @change="updateMicrophones"
+            >
               <el-option
                 v-for="item in microphones.options"
                 :value="item.deviceID"
@@ -48,10 +60,18 @@
                 :key="item.deviceID"
               ></el-option>
             </el-select>
+            <div v-else class="disable-select" style="width: 256px">
+              <icon name="icon_fail"></icon>
+              {{ microphones.errMsg }}
+            </div>
           </div>
           <div>
             <div class="media-select-box">扬声器</div>
-            <el-select v-model="speakers.value" @change="updateSpeakers">
+            <el-select
+              v-if="speakers.options.length"
+              v-model="speakers.value"
+              @change="updateSpeakers"
+            >
               <el-option
                 v-for="item in speakers.options"
                 :key="item.deviceID"
@@ -59,6 +79,10 @@
                 :label="item.deviceName"
               ></el-option>
             </el-select>
+            <div v-else class="disable-select" style="width: 256px">
+              <icon name="icon_fail"></icon>
+              {{ speakers.errMsg }}
+            </div>
           </div>
         </div>
         <div id="resolution">
@@ -66,7 +90,6 @@
           <div class="resolution-select">
             <div
               class="resolution-label"
-              :style="!localStream && { cursor: 'not-allowed' }"
               :class="{
                 'is-active':
                   $store.state.cameraConfig.videoQuality === 3 ||
@@ -80,7 +103,6 @@
             </div>
             <div
               class="resolution-label"
-              :style="!localStream && { cursor: 'not-allowed' }"
               :class="{
                 'is-active':
                   $store.state.cameraConfig.videoQuality === 2 ||
@@ -94,7 +116,6 @@
             </div>
             <div
               class="resolution-label"
-              :style="!localStream && { cursor: 'not-allowed' }"
               :class="{
                 'is-active':
                   $store.state.cameraConfig.videoQuality === 1 ||
@@ -114,7 +135,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref, toRefs, watch } from "vue";
+import { defineComponent, onBeforeUnmount, onMounted, ref } from "vue";
 import { zg } from "@/service/SDKServer";
 import { ZegoDeviceInfo } from "zego-express-engine-webrtc/sdk/code/zh/ZegoExpressEntity.web";
 import { useStore } from "vuex";
@@ -142,99 +163,116 @@ const videoQualityType = {
 };
 
 export default defineComponent({
-  props: {
-    show: {
-      type: Boolean,
-      default: () => {
-        return false;
-      },
-    },
-    localStream: {
-      type: MediaStream,
-    },
-    isPlaying: {
-      type: Boolean,
-    },
-  },
-  setup(props) {
-    const { show, localStream, isPlaying } = toRefs(props);
+  setup() {
     const store = useStore<MainStore>();
     const tabActive = ref<"setting" | "resolution">("setting");
-    const cameras = ref({ value: "", options: [] as ZegoDeviceInfo[] });
-    const microphones = ref({ value: "", options: [] as ZegoDeviceInfo[] });
-    const speakers = ref({ value: "", options: [] as ZegoDeviceInfo[] });
-
-    const isAnchor = computed(() => {
-      // 是否为主播本人
-      return (
-        store.state.room?.creator_id.toString() ===
-        store.state.user?.uid.toString()
-      );
+    const cameras = ref({
+      value: "",
+      options: [] as ZegoDeviceInfo[],
+      errMsg: "系统未授权使用摄像头",
+    });
+    const microphones = ref({
+      value: "",
+      options: [] as ZegoDeviceInfo[],
+      errMsg: "系统未授权使用麦克风",
+    });
+    const speakers = ref({
+      value: "",
+      options: [] as ZegoDeviceInfo[],
+      errMsg: "系统未授权使用扬声器",
     });
 
-    watch(
-      () => show.value,
-      (value) => {
-        if (value) {
-          zg.enumDevices().then((devices) => {
-            cameras.value.options = [];
-            devices.cameras.forEach((dev, i, arr) => {
-              if (dev.deviceID === "default") {
-                for (const item of arr) {
-                  const matchIndex = dev.deviceName.indexOf(item.deviceName);
-                  if (matchIndex !== -1 && matchIndex !== 0) {
-                    cameras.value.value = item.deviceID;
-                    break;
-                  }
-                }
-              } else {
-                cameras.value.options.push(dev);
+    const check = async function () {
+      // 先触发麦克风调用，调起授权
+      const authStream = await zg.createStream({
+        camera: { video: true, audio: true },
+      });
+      zg.destroyStream(authStream);
+      zg.enumDevices().then((devices) => {
+        try {
+          // 处理摄像头
+          cameras.value.options = devices.cameras;
+          // 无可用设备
+          if (
+            cameras.value.options.length === 0 ||
+            !cameras.value.options[0].deviceID
+          ) {
+            cameras.value.errMsg = "未检测到摄像头设备";
+          } else {
+            // 设置中就采用目前推流的设备
+            cameras.value.options.forEach((val: ZegoDeviceInfo) => {
+              if (val.deviceID === store.state.cameraConfig.videoInput) {
+                cameras.value.value = val.deviceID;
               }
             });
-            if (cameras.value.options.length && !cameras.value.value) {
+            if (!cameras.value.value) {
+              // 设备检测||推流中的设备被移除了  就采用第一个设备
               cameras.value.value = cameras.value.options[0].deviceID;
             }
-            microphones.value.options = [];
-            devices.microphones.forEach((dev, i, arr) => {
-              if (dev.deviceID === "default") {
-                for (const item of arr) {
-                  const matchIndex = dev.deviceName.indexOf(item.deviceName);
-                  if (matchIndex !== -1 && matchIndex !== 0) {
-                    microphones.value.value = item.deviceID;
-                    break;
-                  }
-                }
-              } else {
-                microphones.value.options.push(dev);
+          }
+        } catch (error) {
+          cameras.value.errMsg = "系统未授权使用摄像头";
+        }
+
+        try {
+          // 处理麦克风
+          microphones.value.options = devices.microphones.filter(
+            (val) =>
+              // 去除默认设备
+              val.deviceID !== "default" && val.deviceID !== "communications"
+          );
+          // 无可用设备
+          if (
+            microphones.value.options.length === 0 ||
+            !microphones.value.options[0].deviceID
+          ) {
+            microphones.value.errMsg = "未检测到麦克风设备";
+          } else {
+            // 设置中就采用目前推流的设备
+            microphones.value.options.forEach((val: ZegoDeviceInfo) => {
+              if (val.deviceID === store.state.cameraConfig.audioInput) {
+                microphones.value.value = val.deviceID;
               }
             });
-            if (microphones.value.options.length && !microphones.value.value) {
+            if (!microphones.value?.value) {
+              // 设备检测||推流中的设备被移除了  就采用第一个设备
               microphones.value.value = microphones.value.options[0].deviceID;
             }
-            speakers.value.options = [];
-            devices.speakers.forEach((dev, i, arr) => {
-              if (dev.deviceID === "default") {
-                for (const item of arr) {
-                  const matchIndex = dev.deviceName.indexOf(item.deviceName);
-                  if (matchIndex !== -1 && matchIndex !== 0) {
-                    speakers.value.value = item.deviceID;
-                    break;
-                  }
-                }
-              } else {
-                speakers.value.options.push(dev);
+          }
+        } catch (error) {
+          microphones.value.errMsg = "系统未授权使用麦克风";
+        }
+
+        try {
+          // 处理扬声器
+          speakers.value.options = devices.speakers.filter(
+            (val) =>
+              // 去除默认设备
+              val.deviceID !== "default" && val.deviceID !== "communications"
+          );
+          // 无可用设备
+          if (
+            speakers.value.options.length === 0 ||
+            !speakers.value.options[0].deviceID
+          ) {
+            speakers.value.errMsg = "未检测到扬声器设备";
+          } else {
+            // 设置中就采用目前推流的设备
+            speakers.value.options.forEach((val: ZegoDeviceInfo) => {
+              if (val.deviceID === store.state.speakerDevice.deviceID) {
+                speakers.value.value = val.deviceID;
               }
             });
-            if (speakers.value.options.length && !speakers.value.value) {
+            if (!speakers.value?.value) {
+              // 设备检测||推流中的设备被移除了  就采用第一个设备
               speakers.value.value = speakers.value.options[0].deviceID;
             }
-          });
+          }
+        } catch (error) {
+          microphones.value.errMsg = "系统未授权使用麦克风";
         }
-      },
-      {
-        immediate: true,
-      }
-    );
+      });
+    };
 
     const tabClick = function () {
       const anchor = document.getElementById(tabActive.value);
@@ -245,22 +283,14 @@ export default defineComponent({
     };
 
     const updateCameras = function (value: string) {
-      if (localStream.value) {
-        zg.useVideoDevice(localStream.value, value).then(() => {
-          const cameraConfig = store.state.cameraConfig;
-          cameraConfig.videoInput = value;
-          store.commit("setter", { key: "cameraConfig", value: cameraConfig });
-        });
-      }
+      const cameraConfig = store.state.cameraConfig;
+      cameraConfig.videoInput = value;
+      store.commit("setter", { key: "cameraConfig", value: cameraConfig });
     };
     const updateMicrophones = function (value: string) {
-      if (localStream.value) {
-        zg.useAudioDevice(localStream.value, value).then(() => {
-          const cameraConfig = store.state.cameraConfig;
-          cameraConfig.audioInput = value;
-          store.commit("setter", { key: "cameraConfig", value: cameraConfig });
-        });
-      }
+      const cameraConfig = store.state.cameraConfig;
+      cameraConfig.audioInput = value;
+      store.commit("setter", { key: "cameraConfig", value: cameraConfig });
     };
     const updateSpeakers = function (value: string) {
       const speakerDevice = store.state.speakerDevice;
@@ -269,18 +299,26 @@ export default defineComponent({
     };
 
     const changeVideoQuality = function (type: 1 | 2 | 3) {
-      if (localStream.value) {
-        const cameraConfig = store.state.cameraConfig;
-        cameraConfig.videoQuality = type;
-        store.commit("setter", {
-          key: "cameraConfig",
-          value: cameraConfig,
-        });
-        if (!isAnchor.value || isPlaying.value) {
-          zg.setVideoConfig(localStream.value, videoQualityType[type]);
-        }
-      }
+      const cameraConfig = JSON.parse(JSON.stringify(store.state.cameraConfig));
+      cameraConfig.videoQuality = type;
+      cameraConfig.width = videoQualityType[type].width;
+      cameraConfig.height = videoQualityType[type].height;
+      cameraConfig.frameRate = videoQualityType[type].frameRate;
+      cameraConfig.bitrate = videoQualityType[type].maxBitrate;
+      store.commit("setter", {
+        key: "cameraConfig",
+        value: cameraConfig,
+      });
     };
+
+    onMounted(() => {
+      check();
+      navigator.mediaDevices.addEventListener("devicechange", check);
+    });
+
+    onBeforeUnmount(() => {
+      navigator.mediaDevices.removeEventListener("devicechange", check);
+    });
 
     return {
       tabActive,
@@ -396,7 +434,11 @@ export default defineComponent({
         }
       }
       .el-select {
-        width: 253px;
+        width: 256px;
+        .el-input__inner {
+          color: #e0dde3;
+          text-overflow: ellipsis;
+        }
       }
     }
   }

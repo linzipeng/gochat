@@ -36,16 +36,21 @@ declare global {
   type Room = {
     room_id: string;
     subject: string;
-    create_time: string;
-    creator_name: string;
-    creator_id: number;
-    online_count: string;
-    on_stage_count: string;
+    cover_img: string;
+    online: number;
+    stream_id: string;
+    host_id: number;
+    create_time: number;
   };
   type User = {
     uid: number;
     nick_name: string;
-    avatar?: string;
+    avatar: string;
+    role?: 1 | 3; // 1、观众  3、主持人
+    login_timestamp?: number;
+    mic?: 1 | 2; // 1：关闭  2:打开
+    camera?: 1 | 2; // 1：关闭  2:打开
+    onstage_state?: 1 | 2 | 3; // 1 未连麦 2 连麦 3 被邀请连麦
   };
   interface Attendee {
     room_id: string;

@@ -312,7 +312,6 @@ export default defineComponent({
 
     // 加入直播间
     const attend = function () {
-
       const cameraConfig: ZegoCamera = {
         video: stepsData.value[0].iconType !== "error",
         audio: stepsData.value[1].iconType !== "error",
@@ -328,12 +327,22 @@ export default defineComponent({
       store.commit("setter", { key: "speakerDevice", value: speakerConfig });
       store.commit("setter", {
         key: "cameraConfig",
-        value: { ...cameraConfig, volume: stepsData.value[1].volume },
+        value: {
+          ...cameraConfig,
+          volume: stepsData.value[1].volume,
+          actualAudioMuted: false,
+          actualVideoMuted: false,
+        },
       });
       sessionStorage.setItem(
         "checkFinish",
         JSON.stringify({
-          cameraConfig: { ...cameraConfig, volume: stepsData.value[1].volume },
+          cameraConfig: {
+            ...cameraConfig,
+            volume: stepsData.value[1].volume,
+            actualAudioMuted: false,
+            actualVideoMuted: false,
+          },
           speakerDevice: speakerConfig,
         })
       );
