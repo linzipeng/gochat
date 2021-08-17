@@ -203,6 +203,7 @@ import mediaSetting from "@/components/mediaSetting.vue";
 import musicSetting from "@/components/musicSetting.vue";
 import equipmentCheck from "@/components/equipmentInspection/equipmentCheck.vue";
 import { createUserInfo } from "@/service/user";
+import keepLiving from "@/service/keepLiving";
 
 export default defineComponent({
   components: {
@@ -637,6 +638,7 @@ export default defineComponent({
               if (stream.user.userID !== store.state.user.uid.toString()) {
                 zg.stopPlayingStream(stream.streamID);
                 if (store.state.room.stream_id === stream.streamID) {
+                  keepLiving.stop();
                   ElMessageBox.alert("主播已结束直播", {
                     confirmButtonText: "确定",
                     center: true,
@@ -645,7 +647,7 @@ export default defineComponent({
                     confirmButtonClass:
                       "zg-button small-button border-radius-5 ",
                   }).then(() => {
-                    quitRoom(false);
+                    quitRoom(false, false);
                   });
                 } else {
                   streamIdList.value.splice(
@@ -738,7 +740,9 @@ export default defineComponent({
     };
 
     const publishStream = function () {
-      if (localStream.value && !isPublishing) {
+      if (!localStream.value) {
+        router.push({ path: "/" });
+      } else if (!isPublishing) {
         if (!isPlaying.value) {
           isPublishing = true;
           // 创建房间
@@ -878,11 +882,15 @@ export default defineComponent({
       });
     };
 
-    const quitRoom = function (broadcast = true) {
-      if (store.state.room.room_id === "" || store.state.room.host_id === 0)
+    const quitRoom = function (broadcast = true, logout = true) {
+      if (store.state.room.room_id === "" || store.state.room.host_id === 0) {
+        router.push({ path: "/" });
         return;
+      }
       destroyStream(broadcast);
-      logoutRoom(store.state.user.uid, store.state.room.room_id);
+      if (logout) {
+        logoutRoom(store.state.user.uid, store.state.room.room_id);
+      }
       if (isAnchor.value) {
         closeRoom(store.state.user.uid, store.state.room.room_id);
       }
@@ -906,6 +914,7 @@ export default defineComponent({
     });
 
     onBeforeUnmount(() => {
+      keepLiving.stop();
       store.commit("setter", {
         key: "room",
         value: {

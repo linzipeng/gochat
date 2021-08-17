@@ -1,11 +1,11 @@
 <template>
   <el-container class="room-list">
     <el-header height="56px" class="room-list-header">
-      <div>
+      <div class="height-56">
         <img src="../assets/logo/logo.svg" />
         <span class="room-list-title"> 互动直播</span>
       </div>
-      <div>
+      <div class="height-56">
         <div class="icon-feedback" v-popover:feedback-popover></div>
         <el-popover
           ref="feedback-popover"
@@ -13,6 +13,7 @@
           popper-class="about-popover feedback-popover-position"
           trigger="hover"
           :show-arrow="false"
+          :offset="-2"
           content="意见反馈"
         >
         </el-popover>
@@ -41,13 +42,13 @@
                 >隐私协议</el-dropdown-item
               >
               <el-dropdown-item command="aboutUs">关于我们</el-dropdown-item>
-              <el-dropdown-item divided
+              <el-dropdown-item divided class="nothing"
                 >应用版本
-                <span style="float: right">v1.0.0</span></el-dropdown-item
+                <span style="float: right; color: #82798F;">v1.0.0</span></el-dropdown-item
               >
-              <el-dropdown-item
+              <el-dropdown-item class="nothing"
                 >SDK版本
-                <span style="float: right"
+                <span style="float: right; color: #82798F;"
                   >v{{ getVersion() }}</span
                 ></el-dropdown-item
               >
@@ -61,7 +62,7 @@
       </div>
     </el-header>
     <el-main class="room-card-container">
-      <template v-if="roomList?.length > 0">
+      <template v-if="roomList?.length">
         <div class="playing-tag">
           <icon name="icon_camrea" class="playing-icon"></icon>
           <span>正在直播</span>
@@ -94,7 +95,7 @@
           </div>
         </div>
       </template>
-      <div v-else class="empty-room">暂无在线房间，快去创建直播间吧</div>
+      <div v-else class="empty-room">暂无在线房间，快去创建吧</div>
     </el-main>
   </el-container>
 </template>
@@ -240,8 +241,11 @@ export default defineComponent({
 
 <style lang="less">
 .one-line {
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
   margin-right: 14px;
+  height: 19px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .about-positon {
@@ -256,10 +260,11 @@ export default defineComponent({
   vertical-align: middle;
   background: #362f46 !important;
   color: #e0dde3 !important;
+  line-height: 1.0 !important;
 }
 
 .about-popover-position {
-  top: 55px;
+  top: 53px;
   right: 128px;
   min-width: 38px !important;
   width: 38px !important;
@@ -278,6 +283,7 @@ export default defineComponent({
   display: inline-block;
   margin-right: 10px;
   cursor: pointer;
+  font-size: 14px;
   vertical-align: middle;
   background: url("../assets/mediaicon/icon-feedback.svg") no-repeat;
   background-size: cover;
@@ -292,7 +298,7 @@ export default defineComponent({
 }
 
 .about-icon {
-  margin-right: 10px;
+  margin-right: 12px;
   color: #e0dde3;
 }
 
@@ -303,10 +309,17 @@ export default defineComponent({
   box-shadow: 0px 6px 10px 0px rgba(0, 0, 0, 0.24);
   border-radius: 8px;
   border: none;
+  box-sizing: border-box;
+  .el-message-box__content {
+    padding: 0;
+  }
+  input {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
   .invalid > input {
-    border-color: #82798f !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
     &:focus {
-      border-color: #82798f !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
     }
   }
   .el-message-box__errormsg {
@@ -318,14 +331,18 @@ export default defineComponent({
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
     color: #e0dde3;
+    font-size: 16px;
+    border-radius: 0px;
     &::placeholder {
       color: #82798f;
     }
   }
   .el-message-box__header {
-    height: 19px;
+    height: 18px;
     border-bottom: 1px solid rgba(121, 120, 125, 0.19);
     .el-message-box__close {
+      color: #D8D8D8;
+      font-size: 18px;
       &:hover {
         color: #9f76ff !important;
       }
@@ -341,15 +358,17 @@ export default defineComponent({
   .el-message-box__input {
     width: 308px;
     margin: auto;
+    padding-top: 30px;
   }
   .el-message-box__btns {
     text-align: center;
+    padding: 0;
   }
   .zg-button {
     width: 160px;
     border-radius: 44px;
     height: 40px;
-    margin-top: 10px;
+    margin-top: 31px;
   }
 }
 
@@ -383,6 +402,11 @@ export default defineComponent({
     justify-content: space-between;
     padding: 0 24px;
     background: #251735;
+    .height-56 {
+      height: 56px;
+      line-height: 56px;
+      padding-bottom: 2px;
+    }
     img {
       vertical-align: middle;
     }
@@ -392,11 +416,15 @@ export default defineComponent({
     }
   }
   .room-card-container {
-    width: 1200px;
+    width: 100%;
     padding: 0;
     display: flex;
     flex-direction: column;
+    align-items: center;
     position: relative;
+    &::-webkit-scrollbar {
+      display: none; /* Chrome Safari */
+    }
     .empty-room {
       text-align: center;
       width: 300px;
@@ -408,21 +436,20 @@ export default defineComponent({
       bottom: 0;
       left: 0;
       right: 0;
+      font-size: 18px;
+      color: #ACA5B4;
     }
     .room-cards {
+      width: 1200px;
       display: grid;
       grid-template-columns: 276px 276px 276px 276px;
       grid-template-rows: 260px;
-      grid-gap: 27px;
-      overflow-y: scroll;
+      grid-gap: 32px;
       flex: 1;
-      &::-webkit-scrollbar {
-        display: none; /* Chrome Safari */
-      }
     }
     align-self: center;
     .playing-tag {
-      width: 100%;
+      width: 1200px;
       height: 90px;
       line-height: 90px;
       color: #e0dde3;
@@ -430,21 +457,19 @@ export default defineComponent({
     }
     .room-card {
       height: 260px;
-      border-radius: 8px;
       cursor: pointer;
       .room-cover-container {
         width: 100%;
-        height: 160px;
+        height: 180px;
         overflow: hidden;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
         .room-cover {
           object-fit: cover;
           width: 100%;
           height: 100%;
           display: block;
-          border-radius: 6px;
           background-size: cover;
-          border-top-left-radius: 8px;
-          border-top-right-radius: 8px;
           transition: all 0.5s;
         }
       }
@@ -485,10 +510,11 @@ export default defineComponent({
 
       &:hover {
         .room-cover {
-          transform: scale(1.2);
+          transform: scale(1.1);
         }
         .room-message {
           box-shadow: 0px 14px 24px -8px rgba(151, 0, 255, 0.3);
+          transition: ease-in-out 250ms box-shadow;
         }
       }
     }

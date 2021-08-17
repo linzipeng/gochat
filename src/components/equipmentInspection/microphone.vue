@@ -87,6 +87,8 @@ export default defineComponent({
     const volumeLength = 27;
     const volume = ref(50);
     let timerOut = 0; // 用于防抖
+    // element-plus bug
+    let deviceListTemp: ZegoDeviceInfo[] = [];
 
     watch(
       () => volume.value,
@@ -192,6 +194,7 @@ export default defineComponent({
             micDevice: currentDevice.value.deviceID,
           });
           await openMic();
+          deviceListTemp = JSON.parse(JSON.stringify(deviceList.value));
           rtx.emit("isDeviceCanUse", true);
         }
       } catch (error) {
@@ -236,6 +239,7 @@ export default defineComponent({
           }
         }
       }
+      deviceList.value = deviceListTemp;
       openMic();
     };
 

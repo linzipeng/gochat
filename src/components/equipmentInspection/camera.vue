@@ -73,6 +73,9 @@ export default defineComponent({
       deviceID: "",
     });
 
+    // element-plus bug
+    let deviceListTemp: ZegoDeviceInfo[] = [];
+
     // 关闭预览摄像头
     const closeCamera = function () {
       if (preCamera.value) {
@@ -116,6 +119,7 @@ export default defineComponent({
         // 拿到设备列表后再进行预览
         const { cameras } = await zg.enumDevices();
         deviceList.value = cameras;
+        deviceListTemp = JSON.parse(JSON.stringify(cameras));
         // 无可用设备
         if (deviceList.value.length === 0 || !deviceList.value[0].deviceID) {
           rtx.emit("isDeviceCanUse", false);
@@ -174,6 +178,7 @@ export default defineComponent({
           }
         }
       }
+      deviceList.value = deviceListTemp;
       openCamera();
     };
 

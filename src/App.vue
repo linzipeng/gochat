@@ -195,6 +195,9 @@ body {
       background: #2c253c !important;
     }
   }
+  .nothing:hover {
+    background-color: inherit !important;
+  }
 }
 
 .el-select {

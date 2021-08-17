@@ -283,17 +283,19 @@ export default defineComponent({
     };
 
     const updateCameras = function (value: string) {
-      const cameraConfig = store.state.cameraConfig;
+      const cameraConfig = JSON.parse(JSON.stringify(store.state.cameraConfig));
       cameraConfig.videoInput = value;
       store.commit("setter", { key: "cameraConfig", value: cameraConfig });
     };
     const updateMicrophones = function (value: string) {
-      const cameraConfig = store.state.cameraConfig;
+      const cameraConfig = JSON.parse(JSON.stringify(store.state.cameraConfig));
       cameraConfig.audioInput = value;
       store.commit("setter", { key: "cameraConfig", value: cameraConfig });
     };
     const updateSpeakers = function (value: string) {
-      const speakerDevice = store.state.speakerDevice;
+      const speakerDevice = JSON.parse(
+        JSON.stringify(store.state.speakerDevice)
+      );
       speakerDevice.deviceID = value;
       store.commit("setter", { key: "speakerDevice", value: speakerDevice });
     };

@@ -95,6 +95,8 @@ export default defineComponent({
     const isSpeakerPlaying = ref(false);
     // 扬声器检测的音量声浪控制
     const volumeLength = 21;
+    // element-plus bug
+    let deviceListTemp: ZegoDeviceInfo[] = [];
 
     // 停止播放扬声器试听音频，清除定时器
     const closeSpeaker = function () {
@@ -161,6 +163,7 @@ export default defineComponent({
               // 设备检测||推流中的设备被移除了  就采用第一个设备
               currentDevice.value = deviceList.value[0];
             }
+            deviceListTemp = JSON.parse(JSON.stringify(deviceList.value));
             rtx.emit("currentDevice", {
               speakerDevice: currentDevice.value.deviceID,
             });
@@ -195,6 +198,7 @@ export default defineComponent({
           }
         }
       }
+      deviceList.value = deviceListTemp;
       openSpeaker();
     };
 

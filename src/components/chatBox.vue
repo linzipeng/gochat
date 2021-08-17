@@ -245,8 +245,9 @@ export default defineComponent({
               try {
                 const { cmd, message } = JSON.parse(messageInfo.message);
                 if (cmd === 10001) {
-                  messageInfo.message = message;
-                  messageList.value.push(messageInfo);
+                  const mess = JSON.parse(JSON.stringify(messageInfo));
+                  mess.message = message;
+                  messageList.value.push(mess);
                 }
               } catch (error) {
                 console.log(error);
@@ -260,7 +261,7 @@ export default defineComponent({
       let isInit = true;
       zg.on("roomUserUpdate", (roomID, updateType, userList) => {
         if (store.state.room.room_id === roomID) {
-          if (!isInit) {
+          if (isAnchor.value || !isInit) {
             userList.forEach((user) => {
               messageList.value.push({
                 updateType,
