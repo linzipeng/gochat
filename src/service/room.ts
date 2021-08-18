@@ -191,7 +191,7 @@ export const onstageRequestAction = function (
         if (ret.code === 0) {
           resolve();
         } else {
-          reject(ret.message);
+          reject();
         }
       })
       .catch(() => {
@@ -213,11 +213,11 @@ export const onstageInviteAction = function (
         if (ret.code === 0) {
           resolve();
         } else {
-          reject(ret.message);
+          reject();
         }
       })
-      .catch((err) => {
-        reject(err);
+      .catch(() => {
+        reject();
       });
   });
 };

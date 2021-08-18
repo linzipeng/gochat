@@ -157,26 +157,13 @@ export default defineComponent({
         video.value.srcObject = localStream;
         video.value.onloadeddata = function () {
           console.log("載入完畢！");
-          const play = () => {
+          const handler = setInterval(() => {
             if (video.value) {
               video.value.play().then(() => {
-                window.removeEventListener("keydown", () => play);
-                window.removeEventListener("click", () => play);
-                window.removeEventListener("mousemove", () => play);
+                clearInterval(handler);
               });
             }
-          };
-          window.addEventListener("keydown", () => play());
-          window.addEventListener("click", () => play());
-          window.addEventListener("mousemove", () => play());
-
-          // 模拟鼠标移动
-          const event = new MouseEvent("click", {
-            view: window,
-            bubbles: true,
-            cancelable: true,
-          });
-          window.dispatchEvent(event);
+          }, 200);
         };
       }
     };

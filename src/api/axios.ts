@@ -13,13 +13,13 @@ const config = {
   baseURL: "https://demo-server-sh.zego.im/alpha",
 };
 
-function showErrorTips(message: string | undefined, title: string | undefined) {
-  ElMessage({
-    message,
-    title: `${title || "请求"} - 失败`,
-    customClass: "alert-box",
-  } as MessageParams);
-}
+// function showErrorTips(message: string | undefined, title: string | undefined) {
+//   ElMessage({
+//     message,
+//     title: `${title || "请求"} - 失败`,
+//     customClass: "alert-box",
+//   } as MessageParams);
+// }
 
 const axiosInstance = axios.create(config);
 
@@ -52,12 +52,12 @@ axiosInstance.interceptors.response.use(
       !rspConfig.ignoreError
     ) {
       debugger;
-      showErrorTips(
-        Object.keys(apiError)?.indexOf(rspData.ret.code?.toString()) !== 0
-          ? apiError[rspData.ret.code]
-          : rspData.ret.message,
-        rspConfig.label
-      );
+      // showErrorTips(
+      //   Object.keys(apiError)?.indexOf(rspData.ret.code?.toString()) !== 0
+      //     ? apiError[rspData.ret.code]
+      //     : rspData.ret.message,
+      //   rspConfig.label
+      // );
     }
     return response.data;
   },

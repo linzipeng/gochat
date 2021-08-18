@@ -3,7 +3,7 @@
     <div class="box-item">
       <div class="label">摄像头</div>
       <el-select
-        v-if="deviceList.length"
+        v-if="deviceList.length || !initCheck"
         v-model="currentDevice.deviceID"
         @change="selectDevice"
       >
@@ -72,6 +72,7 @@ export default defineComponent({
       deviceName: "",
       deviceID: "",
     });
+    const initCheck = ref(false);
 
     // element-plus bug
     let deviceListTemp: ZegoDeviceInfo[] = [];
@@ -117,9 +118,15 @@ export default defineComponent({
         });
         zg.destroyStream(authStream);
         // 拿到设备列表后再进行预览
-        const { cameras } = await zg.enumDevices();
-        deviceList.value = cameras;
-        deviceListTemp = JSON.parse(JSON.stringify(cameras));
+        await zg
+          .enumDevices()
+          .then(({ cameras }) => {
+            deviceList.value = cameras;
+            deviceListTemp = JSON.parse(JSON.stringify(cameras));
+          })
+          .finally(() => {
+            initCheck.value = true;
+          });
         // 无可用设备
         if (deviceList.value.length === 0 || !deviceList.value[0].deviceID) {
           rtx.emit("isDeviceCanUse", false);
@@ -156,6 +163,8 @@ export default defineComponent({
         }
         rtx.emit("isDeviceCanUse", false);
         throw error;
+      } finally {
+        initCheck.value = true;
       }
     };
 
@@ -200,6 +209,7 @@ export default defineComponent({
       deviceList,
       currentDevice,
       errMsg,
+      initCheck,
       selectDevice,
     };
   },

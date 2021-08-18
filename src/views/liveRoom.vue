@@ -81,7 +81,7 @@
               @handleCommand="
                 (value, streamId) => handleCommand(value, streamId)
               "
-              :picIndex="attendeeMap.get(streamId)?.nick_name?.picIndex()"
+              :picIndex="attendeeMap.get(streamId)?.avatar"
             ></main-video>
           </div>
         </div>
@@ -472,10 +472,10 @@ export default defineComponent({
                               .then(() => {
                                 // connectedAnthor(true);
                               })
-                              .catch((mess) => {
+                              .catch(() => {
                                 ElMessage({
                                   customClass: "alert-box",
-                                  message: mess || "最多支持3名观众连麦",
+                                  message: "最多支持3名观众连麦",
                                 });
                               });
                           })
@@ -565,10 +565,10 @@ export default defineComponent({
                         data.uid,
                         roomID,
                         3
-                      ).catch((err) => {
+                      ).catch(() => {
                         ElMessage({
                           customClass: "alert-box",
-                          message: err,
+                          message: "最多支持3名观众连麦",
                         });
                       });
                     } else {

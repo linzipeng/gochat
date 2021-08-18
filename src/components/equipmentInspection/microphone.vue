@@ -4,7 +4,7 @@
       <div class="label">麦克风</div>
       <div class="item-content">
         <el-select
-          v-if="deviceList.length"
+          v-if="deviceList.length || !initCheck"
           v-model="currentDevice.deviceID"
           @change="selectDevice"
         >
@@ -89,6 +89,7 @@ export default defineComponent({
     let timerOut = 0; // 用于防抖
     // element-plus bug
     let deviceListTemp: ZegoDeviceInfo[] = [];
+    const initCheck = ref(false);
 
     watch(
       () => volume.value,
@@ -166,9 +167,15 @@ export default defineComponent({
         });
         zg.destroyStream(authStream);
         // 拿到设备列表后再进行预览
-        const { microphones } = await zg.enumDevices();
+        await zg
+          .enumDevices()
+          .then(({ microphones }) => {
+            deviceList.value = microphones;
+          })
+          .finally(() => {
+            initCheck.value = true;
+          });
 
-        deviceList.value = microphones;
         // 无可用设备
         if (deviceList.value.length === 0 || !deviceList.value[0].deviceID) {
           rtx.emit("isDeviceCanUse", false);
@@ -210,6 +217,8 @@ export default defineComponent({
         }
         rtx.emit("isDeviceCanUse", false);
         throw error;
+      } finally {
+        initCheck.value = true;
       }
     };
 
@@ -266,6 +275,7 @@ export default defineComponent({
       volumeLength,
       micRealVolume,
       volume,
+      initCheck,
       selectDevice,
     };
   },

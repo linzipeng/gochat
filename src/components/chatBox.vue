@@ -74,7 +74,7 @@
               class="avatar"
               :style="{
                 'background-image': `url(${require('../assets/person/' +
-                  person.nick_name?.picIndex() +
+                  person.avatar +
                   '-avatar@2x.png')}`,
               }"
             ></i>
@@ -87,7 +87,10 @@
               我（自己）
             </template>
             <template v-else-if="person.role === 3"> 主播 </template>
-            <span v-else-if="person.onstage_state === 2" class="onstage">
+            <span
+              v-else-if="person.onstage_state === 2 && isAnchor"
+              class="onstage"
+            >
               连麦中...
             </span>
             <template v-else-if="isAnchor">
