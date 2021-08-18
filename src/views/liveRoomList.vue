@@ -220,6 +220,7 @@ export default defineComponent({
     };
 
     onBeforeMount(() => {
+      sessionStorage.removeItem("checkFinish");
       clearInterval();
       const updateRoomList = () => {
         getRoomList().then((data) => {

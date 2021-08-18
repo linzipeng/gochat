@@ -116,6 +116,7 @@ import {
   computed,
   defineComponent,
   nextTick,
+  onBeforeUnmount,
   PropType,
   ref,
   toRefs,
@@ -281,6 +282,11 @@ export default defineComponent({
     };
 
     onCallBack();
+
+    onBeforeUnmount(() => {
+      zg.off("IMRecvBroadcastMessage");
+      zg.off("roomUserUpdate");
+    });
 
     return {
       chatArea,

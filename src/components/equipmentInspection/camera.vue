@@ -3,7 +3,7 @@
     <div class="box-item">
       <div class="label">摄像头</div>
       <el-select
-        v-if="deviceList.length || !initCheck"
+        v-if="deviceList.length"
         v-model="currentDevice.deviceID"
         @change="selectDevice"
       >
@@ -65,14 +65,13 @@ export default defineComponent({
   setup(props, rtx) {
     const store = useStore<MainStore>();
     const deviceList = ref<ZegoDeviceInfo[]>([]);
-    const errMsg = ref("系统未授权使用摄像头"); // 错误信息登记
+    const errMsg = ref("未检测到可用摄像头"); // 错误信息登记
     const preCamera = ref<HTMLVideoElement | null>(null);
     const previewCamera = ref<MediaStream | null>(null);
     const currentDevice = ref<ZegoDeviceInfo>({
       deviceName: "",
       deviceID: "",
     });
-    const initCheck = ref(false);
 
     // element-plus bug
     let deviceListTemp: ZegoDeviceInfo[] = [];
@@ -118,15 +117,10 @@ export default defineComponent({
         });
         zg.destroyStream(authStream);
         // 拿到设备列表后再进行预览
-        await zg
-          .enumDevices()
-          .then(({ cameras }) => {
-            deviceList.value = cameras;
-            deviceListTemp = JSON.parse(JSON.stringify(cameras));
-          })
-          .finally(() => {
-            initCheck.value = true;
-          });
+        await zg.enumDevices().then(({ cameras }) => {
+          deviceList.value = cameras;
+          deviceListTemp = JSON.parse(JSON.stringify(cameras));
+        });
         // 无可用设备
         if (deviceList.value.length === 0 || !deviceList.value[0].deviceID) {
           rtx.emit("isDeviceCanUse", false);
@@ -163,8 +157,6 @@ export default defineComponent({
         }
         rtx.emit("isDeviceCanUse", false);
         throw error;
-      } finally {
-        initCheck.value = true;
       }
     };
 
@@ -174,6 +166,7 @@ export default defineComponent({
         deviceName: "",
         deviceID: "",
       };
+      rtx.emit("isDeviceCanUse", true);
       check();
     };
 
@@ -209,7 +202,6 @@ export default defineComponent({
       deviceList,
       currentDevice,
       errMsg,
-      initCheck,
       selectDevice,
     };
   },

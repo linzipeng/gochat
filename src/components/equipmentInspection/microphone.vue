@@ -4,7 +4,7 @@
       <div class="label">麦克风</div>
       <div class="item-content">
         <el-select
-          v-if="deviceList.length || !initCheck"
+          v-if="deviceList.length"
           v-model="currentDevice.deviceID"
           @change="selectDevice"
         >
@@ -76,7 +76,7 @@ export default defineComponent({
   setup(props, rtx) {
     const store = useStore<MainStore>();
     const deviceList = ref<ZegoDeviceInfo[]>([]);
-    const errMsg = ref("系统未授权使用麦克风"); // 错误信息登记
+    const errMsg = ref("未检测到可用麦克风"); // 错误信息登记
     const previewAudio = ref<HTMLAudioElement | null>(null);
     const previewMic = ref<MediaStream | null>(null);
     const currentDevice = ref<ZegoDeviceInfo>({
@@ -89,7 +89,6 @@ export default defineComponent({
     let timerOut = 0; // 用于防抖
     // element-plus bug
     let deviceListTemp: ZegoDeviceInfo[] = [];
-    const initCheck = ref(false);
 
     watch(
       () => volume.value,
@@ -166,14 +165,9 @@ export default defineComponent({
         });
         zg.destroyStream(authStream);
         // 拿到设备列表后再进行预览
-        await zg
-          .enumDevices()
-          .then(({ microphones }) => {
-            deviceList.value = microphones;
-          })
-          .finally(() => {
-            initCheck.value = true;
-          });
+        await zg.enumDevices().then(({ microphones }) => {
+          deviceList.value = microphones;
+        });
 
         // 无可用设备
         if (deviceList.value.length === 0 || !deviceList.value[0].deviceID) {
@@ -205,6 +199,7 @@ export default defineComponent({
         }
       } catch (error) {
         console.log(error);
+        errMsg.value = "浏览器未授权使用麦克风";
         if (error.message === "Permission denied") {
           errMsg.value = "浏览器未授权使用麦克风";
         }
@@ -216,8 +211,6 @@ export default defineComponent({
         }
         rtx.emit("isDeviceCanUse", false);
         throw error;
-      } finally {
-        initCheck.value = true;
       }
     };
 
@@ -226,6 +219,7 @@ export default defineComponent({
         clearTimeout(timerOut);
         timerOut = 0;
       }
+      rtx.emit("isDeviceCanUse", true);
       timerOut = window.setTimeout(() => {
         // 清除当前的设备
         currentDevice.value = {
@@ -274,7 +268,6 @@ export default defineComponent({
       volumeLength,
       micRealVolume,
       volume,
-      initCheck,
       previewAudio,
       selectDevice,
     };

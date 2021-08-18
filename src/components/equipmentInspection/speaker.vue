@@ -4,7 +4,7 @@
       <div class="label">扬声器</div>
       <div class="item-content">
         <el-select
-          v-if="deviceList.length || !initCheck"
+          v-if="deviceList.length"
           v-model="currentDevice.deviceID"
           @change="selectDevice"
         >
@@ -86,13 +86,12 @@ export default defineComponent({
     const speakerRealVolume = ref(0);
     const store = useStore<MainStore>();
     const deviceList = ref<ZegoDeviceInfo[]>([]);
-    const errMsg = ref("未检测到扬声器设备"); // 错误信息登记
+    const errMsg = ref("未检测到可用扬声器"); // 错误信息登记
     let speakerAudio: any;
     const currentDevice = ref<ZegoDeviceInfo>({
       deviceName: "",
       deviceID: "",
     });
-    const initCheck = ref(false);
     const isSpeakerPlaying = ref(false);
     // 扬声器检测的音量声浪控制
     const volumeLength = 21;
@@ -174,9 +173,6 @@ export default defineComponent({
         .catch((err: any) => {
           rtx.emit("isDeviceCanUse", false);
           throw err;
-        })
-        .finally(() => {
-          initCheck.value = true;
         });
     };
 
@@ -221,6 +217,7 @@ export default defineComponent({
         deviceName: "",
         deviceID: "",
       };
+      rtx.emit("isDeviceCanUse", true);
       check();
     };
 

@@ -887,6 +887,9 @@ export default defineComponent({
         router.push({ path: "/" });
         return;
       }
+      zg.off("IMRecvBroadcastMessage");
+      zg.off("IMRecvCustomCommand");
+      zg.off("roomStreamUpdate");
       destroyStream(broadcast);
       if (logout) {
         logoutRoom(store.state.user.uid, store.state.room.room_id);
