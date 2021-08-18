@@ -13,7 +13,7 @@
           popper-class="about-popover feedback-popover-position"
           trigger="hover"
           :show-arrow="false"
-          :offset="-2"
+          :offset="12"
           content="意见反馈"
         >
         </el-popover>

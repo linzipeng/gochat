@@ -67,9 +67,10 @@
 <script lang="ts">
 import { defineComponent, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { zg } from "@/service/SDKServer";
-import { ZegoDeviceInfo } from "zego-express-engine-webrtc/sdk/code/zh/ZegoExpressEntity.web";
+import { ZegoCamera, ZegoDeviceInfo } from "zego-express-engine-webrtc/sdk/code/zh/ZegoExpressEntity.web";
 import { useStore } from "vuex";
 import { MainStore } from "@/store/store";
+import { nextTick } from "process";
 
 export default defineComponent({
   setup(props, rtx) {
@@ -82,7 +83,6 @@ export default defineComponent({
       deviceName: "",
       deviceID: "",
     });
-    let context: AudioContext;
     const micRealVolume = ref(0); // 麦克风音量
     const volumeLength = 27;
     const volume = ref(50);
@@ -94,6 +94,9 @@ export default defineComponent({
     watch(
       () => volume.value,
       (value) => {
+        if (previewAudio.value) {
+          previewAudio.value.volume = value / 100;
+        }
         if (previewMic.value) {
           zg.setCaptureVolume(previewMic.value, value).then(() => {
             rtx.emit("currentVolume", { microphone: value });
@@ -111,9 +114,6 @@ export default defineComponent({
       if (previewMic.value) {
         zg.destroyStream(previewMic.value);
       }
-      if (context?.state === "running") {
-        context.close();
-      }
       // 关闭音浪回调
       zg.off("capturedSoundLevelUpdate");
     };
@@ -121,15 +121,7 @@ export default defineComponent({
     // 开启麦克风
     const openMic = async function () {
       closeMic();
-      let cameraOption: {
-        audio: boolean;
-        audioInput?: string;
-        video: boolean;
-        channelCount?: 1 | 2 | undefined;
-        AEC?: boolean;
-        ANS?: boolean;
-        AGC?: boolean;
-      } = {
+      let cameraOption: ZegoCamera = {
         audio: true,
         video: false,
         channelCount: 1,
@@ -143,9 +135,16 @@ export default defineComponent({
         previewMic.value = await zg.createStream({
           camera: cameraOption,
         });
-        if (previewAudio.value) {
-          previewAudio.value.srcObject = previewMic.value;
-        }
+        nextTick(() => {
+          if (previewAudio.value) {
+            previewAudio.value.srcObject = previewMic.value;
+            const handler = setInterval(() => {
+              previewAudio.value?.play().then(() => {
+                clearInterval(handler);
+              });
+            }, 200);
+          }
+        });
 
         // 开启音浪回调
         zg.setSoundLevelDelegate(true, 100);
@@ -276,6 +275,7 @@ export default defineComponent({
       micRealVolume,
       volume,
       initCheck,
+      previewAudio,
       selectDevice,
     };
   },
