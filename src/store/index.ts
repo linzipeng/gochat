@@ -29,12 +29,16 @@ const initState: MainStore = {
     videoQuality: 2,
     actualAudioMuted: false,
     actualVideoMuted: false,
+    videoErrorMessage: "",
+    audioErrorMessage: "",
     volume: 50,
   },
   speakerDevice: {
     deviceID: "",
     deviceName: "",
     volume: 50,
+    speaker: true,
+    speakerErrorMessage: "",
   },
   mixingAudio: {
     src: "",

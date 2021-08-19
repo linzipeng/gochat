@@ -3,17 +3,21 @@ import {
   ZegoCamera,
 } from "zego-express-engine-webrtc/sdk/code/zh/ZegoExpressEntity.web";
 
-interface CameraConfig extends ZegoCamera {
+export interface CameraConfig extends ZegoCamera {
   volume: number;
   actualVideoMuted?: boolean;
   actualAudioMuted?: boolean;
+  videoErrorMessage?: string;
+  audioErrorMessage?: string;
 }
 
-interface SpeakerConfig extends ZegoDeviceInfo {
+export interface SpeakerConfig extends ZegoDeviceInfo {
   volume: number;
+  speaker: boolean;
+  speakerErrorMessage?: "";
 }
 
-interface MixingAudio {
+export interface MixingAudio {
   src: string;
   title: string;
   id: string;

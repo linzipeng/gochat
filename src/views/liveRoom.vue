@@ -19,19 +19,42 @@
         </span>
       </div>
       <div>
-        <icon
-          name="icon_data_normal"
-          :isButton="true"
+        <el-popover
           v-if="isAnchor"
-          @click="showStatus = !showStatus"
-        ></icon>
-        <icon
-          name="a-icon_settingup"
+          placement="bottom"
+          popper-class="about-popover feedback-popover-position"
+          trigger="hover"
+          :show-arrow="false"
+          :offset="12"
+          content="实时数据"
+        > 
+          <template #reference>
+            <icon
+              name="icon_data_normal"
+              :isButton="true"
+              @click="showStatus = !showStatus"
+            ></icon>
+          </template>
+        </el-popover>
+        <el-popover
+          placement="bottom"
           v-if="isAnchor"
-          :isButton="true"
-          class="setting"
-          @click="showMediaSetting = !showMediaSetting"
-        ></icon>
+          popper-class="about-popover about-popover-position"
+          trigger="hover"
+          :show-arrow="false"
+          :offset="12"
+          content="设置"
+        >
+          <template #reference>
+            <icon
+              v-popover:media-popover
+              name="a-icon_settingup"
+              :isButton="true"
+              class="setting"
+              @click="showMediaSetting = !showMediaSetting"
+            ></icon>
+          </template>
+        </el-popover>
         <span
           class="room-operation"
           :class="isPlaying ? 'close-anchor' : 'zg-button start-anchor'"
@@ -88,14 +111,17 @@
         <div class="interactive-box">
           <div
             class="operation"
-            v-if="!!localStream"
+            :class="{ 'operation-diabled': !$store.state.cameraConfig.video }"
+            v-if="!!localStream || isAnchor"
             @click="updateMedia('webcam')"
           >
             <icon
               :name="
-                $store.state.cameraConfig.actualVideoMuted
-                  ? 'icon_cam_off'
-                  : 'icon_cam_on'
+                $store.state.cameraConfig.video
+                  ? $store.state.cameraConfig.actualVideoMuted
+                    ? 'icon_cam_off'
+                    : 'icon_cam_on'
+                  : 'icon_cam_fault'
               "
             ></icon
             ><br />
@@ -103,15 +129,18 @@
           </div>
           <div
             class="operation"
-            v-if="!!localStream"
+            :class="{ 'operation-diabled': !$store.state.cameraConfig.audio }"
+            v-if="!!localStream || isAnchor"
             @click="updateMedia('microphone')"
           >
             <icon
               :name="
-                attendeeMap.get($store.state.user?.uid.toString())?.mic === 1 ||
-                $store.state.cameraConfig.actualAudioMuted
-                  ? 'icon_operation_mic_off'
-                  : 'icon_mic_on'
+                $store.state.cameraConfig.audio
+                  ? attendeeMap.get($store.state.user?.uid.toString())?.mic ===
+                      1 || $store.state.cameraConfig.actualAudioMuted
+                    ? 'icon_operation_mic_off'
+                    : 'icon_mic_on'
+                  : 'icon_mic_fault'
               "
             ></icon
             ><br />
@@ -297,7 +326,9 @@ export default defineComponent({
       // 是否为主播本人
       return (
         store.state.room?.host_id.toString() ===
-          store.state.user?.uid.toString() || streamIdList.value.length === 0
+          store.state.user?.uid.toString() ||
+        streamIdList.value.length === 0 ||
+        routeParams.roomId === "100000"
       );
     });
 
@@ -663,8 +694,15 @@ export default defineComponent({
     };
 
     const updateMedia = function (type: "microphone" | "webcam" | "music") {
-      if (localStream.value) {
-        if (type === "webcam") {
+      if (type === "webcam") {
+        if (!store.state.cameraConfig.video) {
+          ElMessage({
+            customClass: "alert-box",
+            message: "摄像头不可用，请检查设备后重试",
+          });
+          return;
+        }
+        if (localStream.value) {
           const cameraConfig = JSON.parse(
             JSON.stringify(store.state.cameraConfig)
           );
@@ -684,7 +722,16 @@ export default defineComponent({
               type: 2,
             });
           }
-        } else if (type === "microphone") {
+        }
+      } else if (type === "microphone") {
+        if (!store.state.cameraConfig.audio) {
+          ElMessage({
+            customClass: "alert-box",
+            message: "麦克风不可用，请检查设备后重试",
+          });
+          return;
+        }
+        if (localStream.value) {
           if (isAnchor.value) {
             const cameraConfig = JSON.parse(
               JSON.stringify(store.state.cameraConfig)
@@ -733,9 +780,9 @@ export default defineComponent({
               });
             }
           }
-        } else if (type === "music") {
-          music.value = !music.value;
         }
+      } else if (type === "music") {
+        music.value = !music.value;
       }
     };
 
@@ -1054,7 +1101,7 @@ export default defineComponent({
         cursor: pointer;
         font-size: 10px;
         margin: 0 16px;
-        &:hover {
+        &:hover{
           svg {
             color: #a653ff;
           }
@@ -1065,11 +1112,20 @@ export default defineComponent({
         svg {
           width: 30px;
           height: 30px;
-          color: #ACA5B4;
+          color: #aca5b4;
         }
         div {
           transform: scale(0.8);
-          color: #82798F;
+          color: #82798f;
+        }
+      }
+      .operation-diabled:hover {
+        cursor: not-allowed;
+        svg {
+          color: #aca5b4;
+        }
+        div {
+          color: #82798f;
         }
       }
     }

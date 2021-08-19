@@ -141,9 +141,8 @@ import microphone from "@/components/equipmentInspection/microphone.vue";
 import speaker from "@/components/equipmentInspection/speaker.vue";
 import result from "@/components/equipmentInspection/result.vue";
 import queryDialog from "@/components/equipmentInspection/queryDialog.vue";
-import { ZegoCamera } from "zego-express-engine-webrtc/sdk/code/zh/ZegoExpressEntity.web";
 import { useStore } from "vuex";
-import { MainStore } from "@/store/store";
+import { CameraConfig, MainStore } from "@/store/store";
 
 // 用于重置数据
 const stepsDataTemp = [
@@ -155,6 +154,7 @@ const stepsDataTemp = [
     isActive: true,
     deviceId: "",
     isLineActive: false,
+    errorMessage: "",
   },
   {
     id: "microphone",
@@ -165,6 +165,7 @@ const stepsDataTemp = [
     deviceId: "",
     volume: 50,
     isLineActive: false,
+    errorMessage: "",
   },
   {
     id: "speaker",
@@ -175,6 +176,7 @@ const stepsDataTemp = [
     volume: 50,
     isActive: false,
     isLineActive: false,
+    errorMessage: "",
   },
   {
     img: ["icon_result_normal", "icon_result_pick"],
@@ -196,6 +198,7 @@ export default defineComponent({
     const store = useStore<MainStore>();
     const stepsData = ref(JSON.parse(JSON.stringify(stepsDataTemp)));
     const nextBtnDisabled = ref(false);
+    let currentTabErrorMessage = "";
     const activeIndex = ref(0);
     const isCamera = ref(true);
     const isMicrophone = ref(false);
@@ -204,8 +207,11 @@ export default defineComponent({
     const isCloseDialogShow = ref(false);
 
     // 子组件传值（设备是否可用）控制【可以看到】按钮是否置灰
-    const isDeviceCanUse = function (data: boolean) {
+    const isDeviceCanUse = function (data: boolean, message?: string) {
       nextBtnDisabled.value = !data;
+      if (message) {
+        currentTabErrorMessage = message;
+      }
     };
 
     // 监听子组件传过来的deviceID
@@ -268,6 +274,7 @@ export default defineComponent({
             stepsData.value[activeIndex.value].iconType = "error";
             stepsData.value[activeIndex.value + 1].isActive = true;
             stepsData.value[activeIndex.value].isLineActive = true;
+            stepsData.value[activeIndex.value].errorMessage = currentTabErrorMessage;
             break;
           }
         }
@@ -314,16 +321,21 @@ export default defineComponent({
 
     // 加入直播间
     const attend = function () {
-      const cameraConfig: ZegoCamera = {
+      const cameraConfig: CameraConfig = {
         video: stepsData.value[0].iconType !== "error",
         audio: stepsData.value[1].iconType !== "error",
+        videoErrorMessage: stepsData.value[0].errorMessage,
+        audioErrorMessage: stepsData.value[1].errorMessage,
         videoInput: stepsData.value[0].deviceId,
         audioInput: stepsData.value[1].deviceId,
         videoQuality: 2,
+        volume: stepsData.value[1].volume,
       };
       const speakerConfig = {
         deviceID: stepsData.value[2].deviceId,
         volume: stepsData.value[2].volume,
+        speaker: stepsData.value[2].iconType !== "error",
+        speakerErrorMessage: stepsData.value[2].errorMessage,
       };
 
       store.commit("setter", { key: "speakerDevice", value: speakerConfig });

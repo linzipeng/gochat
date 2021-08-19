@@ -3,7 +3,7 @@
     <el-header height="56px" class="room-list-header">
       <div class="height-56">
         <img src="../assets/logo/logo.svg" />
-        <span class="room-list-title"> 互动直播</span>
+        <span class="room-list-title"> 多人连麦直播</span>
       </div>
       <div class="height-56">
         <div class="icon-feedback" v-popover:feedback-popover></div>
@@ -247,35 +247,6 @@ export default defineComponent({
   height: 19px;
   display: inline-block;
   vertical-align: middle;
-}
-
-.about-positon {
-  width: 164px;
-}
-
-.about-popover {
-  position: fixed;
-  box-sizing: border-box;
-  padding: 4px 6px !important;
-  font-size: 10px !important;
-  vertical-align: middle;
-  background: #362f46 !important;
-  color: #e0dde3 !important;
-  line-height: 1.0 !important;
-}
-
-.about-popover-position {
-  top: 53px;
-  right: 128px;
-  min-width: 38px !important;
-  width: 38px !important;
-  height: 22px !important;
-}
-
-.feedback-popover-position {
-  min-width: 62px !important;
-  width: 62px !important;
-  height: 22px !important;
 }
 
 .icon-feedback {

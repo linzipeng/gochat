@@ -54,7 +54,7 @@
               </div>
             </template>
             <p>1.在浏览器“允许”使用麦克风</p>
-            <p>2.在系统允许“允许”使用麦克风</p>
+            <p>2.在系统“允许”使用麦克风</p>
             <p>3.请确认麦克风已正确连接并开启（红色孔）</p>
             <p>4.请确认麦克风没有被其他软件占用</p>
           </el-popover>
@@ -67,10 +67,12 @@
 <script lang="ts">
 import { defineComponent, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { zg } from "@/service/SDKServer";
-import { ZegoCamera, ZegoDeviceInfo } from "zego-express-engine-webrtc/sdk/code/zh/ZegoExpressEntity.web";
+import {
+  ZegoCamera,
+  ZegoDeviceInfo,
+} from "zego-express-engine-webrtc/sdk/code/zh/ZegoExpressEntity.web";
 import { useStore } from "vuex";
 import { MainStore } from "@/store/store";
-import { nextTick } from "process";
 
 export default defineComponent({
   setup(props, rtx) {
@@ -86,16 +88,12 @@ export default defineComponent({
     const micRealVolume = ref(0); // 麦克风音量
     const volumeLength = 27;
     const volume = ref(50);
-    let timerOut = 0; // 用于防抖
     // element-plus bug
     let deviceListTemp: ZegoDeviceInfo[] = [];
 
     watch(
       () => volume.value,
       (value) => {
-        if (previewAudio.value) {
-          previewAudio.value.volume = value / 100;
-        }
         if (previewMic.value) {
           zg.setCaptureVolume(previewMic.value, value).then(() => {
             rtx.emit("currentVolume", { microphone: value });
@@ -134,16 +132,9 @@ export default defineComponent({
         previewMic.value = await zg.createStream({
           camera: cameraOption,
         });
-        nextTick(() => {
-          if (previewAudio.value) {
-            previewAudio.value.srcObject = previewMic.value;
-            const handler = setInterval(() => {
-              previewAudio.value?.play().then(() => {
-                clearInterval(handler);
-              });
-            }, 200);
-          }
-        });
+        if (previewAudio.value) {
+          previewAudio.value.srcObject = previewMic.value;
+        }
 
         // 开启音浪回调
         zg.setSoundLevelDelegate(true, 100);
@@ -152,7 +143,7 @@ export default defineComponent({
         });
       } catch (err) {
         // 获取权限失败
-        rtx.emit("isDeviceCanUse", false);
+        rtx.emit("isDeviceCanUse", false, errMsg.value);
         throw err;
       }
     };
@@ -171,9 +162,9 @@ export default defineComponent({
 
         // 无可用设备
         if (deviceList.value.length === 0 || !deviceList.value[0].deviceID) {
-          rtx.emit("isDeviceCanUse", false);
+          errMsg.value = "未检测到可用麦克风";
+          rtx.emit("isDeviceCanUse", false, errMsg.value);
           closeMic();
-          errMsg.value = "未检测到麦克风设备";
         } else {
           // 去除默认设备
           deviceList.value = deviceList.value.filter(
@@ -209,25 +200,14 @@ export default defineComponent({
         ) {
           errMsg.value = "系统未授权使用麦克风";
         }
-        rtx.emit("isDeviceCanUse", false);
+        rtx.emit("isDeviceCanUse", false, errMsg.value);
         throw error;
       }
     };
 
     const onDeviceChange = function (e: any) {
-      if (timerOut) {
-        clearTimeout(timerOut);
-        timerOut = 0;
-      }
       rtx.emit("isDeviceCanUse", true);
-      timerOut = window.setTimeout(() => {
-        // 清除当前的设备
-        currentDevice.value = {
-          deviceName: "",
-          deviceID: "",
-        };
-        check();
-      }, 500);
+      check();
     };
 
     // 选择设备
@@ -251,9 +231,6 @@ export default defineComponent({
     });
 
     onBeforeUnmount(() => {
-      if (timerOut) {
-        clearTimeout(timerOut);
-      }
       closeMic();
       navigator.mediaDevices.removeEventListener(
         "devicechange",
@@ -268,7 +245,6 @@ export default defineComponent({
       volumeLength,
       micRealVolume,
       volume,
-      previewAudio,
       selectDevice,
     };
   },

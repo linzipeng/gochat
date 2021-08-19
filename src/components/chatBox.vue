@@ -46,7 +46,7 @@
         <el-input
           class="chat-input"
           type="textarea"
-          :rows="7"
+          :rows="6"
           resize="none"
           :maxlength="30"
           placeholder="说点什么呢..."
@@ -430,6 +430,8 @@ export default defineComponent({
           border-top: 1px solid #1d142e;
           border-radius: 0;
           color: #e0dde3;
+          padding: 14px;
+          box-sizing: border-box;
           &::placeholder {
             color: #82798f;
           }

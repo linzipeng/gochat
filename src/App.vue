@@ -200,6 +200,35 @@ body {
   }
 }
 
+.about-positon {
+  width: 164px;
+}
+
+.about-popover {
+  position: fixed !important;
+  box-sizing: border-box !important;
+  padding: 4px 6px !important;
+  font-size: 10px !important;
+  vertical-align: middle;
+  background: #362f46 !important;
+  color: #e0dde3 !important;
+  line-height: 1.0 !important;
+}
+
+.about-popover-position {
+  top: 53px;
+  right: 128px;
+  min-width: 38px !important;
+  width: 38px !important;
+  height: 22px !important;
+}
+
+.feedback-popover-position {
+  min-width: 62px !important;
+  width: 62px !important;
+  height: 22px !important;
+}
+
 .el-select {
   width: 253px;
   margin-top: 6px;

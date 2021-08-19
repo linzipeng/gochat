@@ -105,7 +105,7 @@ export default defineComponent({
         }
       } catch (e) {
         // 获取权限失败
-        rtx.emit("isDeviceCanUse", false);
+        rtx.emit("isDeviceCanUse", false, errMsg.value);
       }
     };
 
@@ -123,9 +123,9 @@ export default defineComponent({
         });
         // 无可用设备
         if (deviceList.value.length === 0 || !deviceList.value[0].deviceID) {
-          rtx.emit("isDeviceCanUse", false);
           closeCamera();
-          errMsg.value = "未检测到摄像头设备";
+          errMsg.value = "未检测到可用摄像头";
+          rtx.emit("isDeviceCanUse", false, errMsg.value);
         } else {
           // 设置中就采用目前推流的设备
           deviceList.value.forEach((val: ZegoDeviceInfo) => {
@@ -155,17 +155,13 @@ export default defineComponent({
         ) {
           errMsg.value = "系统未授权使用摄像头";
         }
-        rtx.emit("isDeviceCanUse", false);
+        rtx.emit("isDeviceCanUse", false, errMsg.value);
         throw error;
       }
     };
 
     const onDeviceChange = function () {
       // 清除当前的设备
-      currentDevice.value = {
-        deviceName: "",
-        deviceID: "",
-      };
       rtx.emit("isDeviceCanUse", true);
       check();
     };
