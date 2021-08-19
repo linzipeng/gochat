@@ -6,7 +6,7 @@
     "test": "echo \"test pass\"",
     "commitlint": "commitlint -e $HUSKY_GIT_PARAMS",
     "serve": "vue-cli-service serve --mode development",
-    "build": "vue-cli-service build --mode production",
+    "build:prod": "vue-cli-service build --mode production",
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e",
     "lint": "vue-cli-service lint",
