@@ -66,8 +66,8 @@ body {
 
 ::-webkit-scrollbar {
   background-color: #1d142e;
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-corner {
@@ -260,13 +260,18 @@ body {
   box-shadow: 0px 6px 10px 0px rgba(0, 0, 0, 0.3) !important;
   width: auto !important;
   padding: 32px;
-  .el-message-box__title {
-    color: #e0dde3;
-    font-size: 16px;
-    font-weight: bold;
-  }
+  width: 302px !important;
+  box-sizing: border-box;
   .el-message-box__header {
-    padding-top: 0 !important;
+    padding: 0px 0px 20px !important;
+    .el-message-box__title {
+      color: #e0dde3;
+      font-size: 16px;
+      font-weight: bold;
+    }
+  }
+  .el-message-box__content {
+    padding: 0;
   }
   .el-message-box__message {
     color: #e0dde3;
@@ -279,6 +284,16 @@ body {
     &:hover {
       opacity: 0.8;
       color: #e0dde3;
+    }
+  }
+  .el-message-box__btns {
+    padding: 32px 0 0;
+    button {
+      width: 82px;
+      height: 28px;
+      &:nth-child(2) {
+        margin-left: 20px;
+      }
     }
   }
   .border-radius-5 {

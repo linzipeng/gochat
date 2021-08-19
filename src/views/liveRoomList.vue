@@ -271,7 +271,6 @@ export default defineComponent({
 
 .about-icon {
   margin-right: 12px;
-  color: #e0dde3;
 }
 
 .create-room-message {
@@ -361,6 +360,7 @@ export default defineComponent({
   flex-direction: column;
   width: 100%;
   height: 100%;
+  min-width: 1280px;
   background: url("../assets/bg/bg.svg") no-repeat center;
   background-size: cover;
   line-height: 56px;
@@ -394,9 +394,6 @@ export default defineComponent({
     flex-direction: column;
     align-items: center;
     position: relative;
-    &::-webkit-scrollbar {
-      display: none; /* Chrome Safari */
-    }
     .empty-room {
       text-align: center;
       width: 300px;

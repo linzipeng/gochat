@@ -61,7 +61,7 @@
     "pubsub-js": "^1.9.3",
     "typescript": "~4.1.5",
     "underscore": "^1.13.1",
-    "zego-express-engine-webrtc": "^2.8.0"
+    "zego-express-engine-webrtc": "^2.9.1"
   },
   "gitHooks": {
     "pre-commit": "lint-staged"

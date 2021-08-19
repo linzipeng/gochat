@@ -305,7 +305,7 @@ export default defineComponent({
 <style lang="less">
 .MI-box {
   margin-top: 8px;
-  margin-left: 8px;
+  margin-left: 2px;
   border-radius: 4px;
   width: 320px !important;
   box-sizing: border-box;

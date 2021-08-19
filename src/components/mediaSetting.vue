@@ -344,6 +344,7 @@ export default defineComponent({
   border-radius: 8px;
   background: #2c253c;
   position: fixed;
+  z-index: 15;
   top: 0;
   right: 0;
   bottom: 0;

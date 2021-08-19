@@ -165,6 +165,7 @@ export default defineComponent({
   color: #aca5b4;
   font-size: 14px;
   box-sizing: border-box;
+  z-index: 15;
   .top {
     box-sizing: border-box;
     width: 100%;

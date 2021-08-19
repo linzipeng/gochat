@@ -51,7 +51,7 @@
       class="main-video"
       style="object-fit: cover"
       :style="
-        isAnchorVideo && { height: '100%', width: '100%', position: 'inherit' }
+        isAnchorVideo && { height: '100%', width: 'calc(100% - 6px)', position: 'inherit' }
       "
       autoplay
       :muted="
@@ -476,6 +476,7 @@ export default defineComponent({
       padding: 4px;
       box-sizing: border-box;
       border-radius: 4px;
+      color: #ffffff;
     }
     .operator-positon {
       width: 80px;
@@ -493,7 +494,7 @@ export default defineComponent({
     line-height: 12px;
     padding: 5px 6px;
     display: inline-block;
-    z-index: 100;
+    z-index: 10;
   }
 }
 .attendee-mic {
@@ -505,7 +506,7 @@ export default defineComponent({
   border-radius: 4px;
   width: 22px;
   height: 22px;
-  z-index: 100;
+  z-index: 10;
 }
 .main-video {
   object-fit: cover;

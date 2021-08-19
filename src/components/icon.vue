@@ -37,6 +37,7 @@ export default defineComponent({
   width: 1.572em;
   height: 1.572em;
   fill: currentColor;
+  color: #ACA5B4;
   overflow: hidden;
   vertical-align: middle;
   user-select: none;

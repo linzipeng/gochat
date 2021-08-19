@@ -937,13 +937,13 @@ export default defineComponent({
     };
 
     const quitRoom = function (broadcast = true, logout = true) {
+      zg.off("IMRecvBroadcastMessage");
+      zg.off("IMRecvCustomCommand");
+      zg.off("roomStreamUpdate");
       if (store.state.room.room_id === "" || store.state.room.host_id === 0) {
         router.push({ path: "/" });
         return;
       }
-      zg.off("IMRecvBroadcastMessage");
-      zg.off("IMRecvCustomCommand");
-      zg.off("roomStreamUpdate");
       destroyStream(broadcast);
       if (logout) {
         logoutRoom(store.state.user.uid, store.state.room.room_id);
@@ -1074,7 +1074,7 @@ export default defineComponent({
       position: relative;
       height: 64px;
       background: #302045;
-      width: 100%;
+      width: calc(100% - 6px);
       border-radius: 4px;
       display: flex;
       align-items: center;
@@ -1135,17 +1135,18 @@ export default defineComponent({
       height: calc(100% - 80px);
       display: flex;
       .anchor-box {
-        width: calc(100% - 21.4% - 8px);
-        max-width: calc(100% - 240px);
+        flex: 1;
         height: 100%;
         position: relative;
       }
       .audience-box {
         width: 21.4%;
-        min-width: 232px;
-        margin-left: 8px;
+        min-width: 164px;
+        max-width: 300px;
+        margin-left: 2px;
         background-color: #302045;
         border-radius: 4px;
+        overflow-y: scroll;
       }
     }
   }
