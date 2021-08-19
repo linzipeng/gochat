@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "23688122",
+      "name": "icon_mic_fault",
+      "font_class": "icon_mic_fault",
+      "unicode": "e711",
+      "unicode_decimal": 59153
+    },
+    {
+      "icon_id": "23688123",
+      "name": "icon_cam_fault",
+      "font_class": "icon_cam_fault",
+      "unicode": "e712",
+      "unicode_decimal": 59154
+    },
+    {
       "icon_id": "23318454",
       "name": "icon_camrea",
       "font_class": "icon_camrea",
