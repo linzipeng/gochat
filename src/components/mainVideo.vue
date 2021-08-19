@@ -51,7 +51,7 @@
       class="main-video"
       style="object-fit: cover"
       :style="
-        isAnchorVideo && { height: '100%', width: 'calc(100% - 6px)', position: 'inherit' }
+        isAnchorVideo && { height: '100%', width: '100%', position: 'inherit' }
       "
       autoplay
       :muted="
@@ -458,6 +458,7 @@ export default defineComponent({
   box-sizing: border-box;
   border-radius: 4px;
   margin-bottom: 8px;
+  overflow: hidden;
   &:hover {
     .anchor-operate-audience {
       display: inline-block;

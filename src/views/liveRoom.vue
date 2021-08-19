@@ -1138,6 +1138,8 @@ export default defineComponent({
         flex: 1;
         height: 100%;
         position: relative;
+        overflow: hidden;
+        margin-right: 6px;
       }
       .audience-box {
         width: 21.4%;
