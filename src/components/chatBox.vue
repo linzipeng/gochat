@@ -361,6 +361,13 @@ export default defineComponent({
     }
     .el-tabs__content {
       height: calc(100% - 40px);
+      #pane-online {
+        overflow-y: scroll;
+        height: 100%;
+        &::-webkit-scrollbar {
+          background-color: #2d1e3b;
+        }
+      }
     }
     .chat-box {
       height: 100%;
@@ -387,17 +394,18 @@ export default defineComponent({
             font-size: 12px;
             line-height: 14px;
             height: 14px;
-            padding: 10px 0;
             color: #aca5b4;
           }
           .message-content {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
             padding: 5px 12px;
-            margin: 10px 0;
+            margin-top: 10px;
             font-size: 14px;
             line-height: 21px;
             display: inline-block;
+            max-width: 266px;
+            box-sizing: border-box;
           }
         }
         .whole-traffic {
@@ -416,6 +424,7 @@ export default defineComponent({
       }
       .chat-input {
         .el-textarea__inner {
+          font-family: MicrosoftYaHei;
           background: #302045;
           border: 0px;
           border-top: 1px solid #1d142e;

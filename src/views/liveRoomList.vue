@@ -173,7 +173,7 @@ export default defineComponent({
             name: "LiveRoom",
             params: {
               roomId: "100000",
-              name: value,
+              name: value.substring(0, 15),
             },
           });
         });
@@ -220,7 +220,6 @@ export default defineComponent({
     };
 
     onBeforeMount(() => {
-      sessionStorage.removeItem("checkFinish");
       clearInterval();
       const updateRoomList = () => {
         getRoomList().then((data) => {
@@ -232,6 +231,7 @@ export default defineComponent({
     });
 
     onBeforeUnmount(() => {
+      sessionStorage.removeItem("checkFinish");
       clearInterval();
     });
 

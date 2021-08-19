@@ -741,7 +741,14 @@ export default defineComponent({
 
     const publishStream = function () {
       if (!localStream.value) {
-        router.push({ path: "/" });
+        if (isPlaying.value) {
+          router.push({ path: "/" });
+        } else {
+          ElMessage({
+            customClass: "alert-box",
+            message: "开播失败，请重新检测设备",
+          });
+        }
       } else if (!isPublishing) {
         if (!isPlaying.value) {
           isPublishing = true;
@@ -1016,6 +1023,7 @@ export default defineComponent({
     overflow: hidden;
     .interactive-box {
       padding: 0 8px;
+      box-sizing: border-box;
       position: relative;
       height: 64px;
       background: #302045;
@@ -1044,21 +1052,24 @@ export default defineComponent({
       }
       .operation {
         cursor: pointer;
-        color: rgba(255, 255, 255, 0.8);
         font-size: 10px;
         margin: 0 16px;
         &:hover {
-          color: #a653ff;
-        }
-        &:active {
-          color: white;
+          svg {
+            color: #a653ff;
+          }
+          div {
+            color: #a653ff;
+          }
         }
         svg {
           width: 30px;
           height: 30px;
+          color: #ACA5B4;
         }
         div {
           transform: scale(0.8);
+          color: #82798F;
         }
       }
     }
@@ -1077,6 +1088,8 @@ export default defineComponent({
         width: 21.4%;
         min-width: 232px;
         margin-left: 8px;
+        background-color: #302045;
+        border-radius: 4px;
       }
     }
   }

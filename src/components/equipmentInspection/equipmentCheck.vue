@@ -78,7 +78,9 @@
           <div class="desc" v-show="isMicrophone">
             从1数到5，您是否可以看到音量条的波动？
           </div>
-          <div class="desc" v-show="isSpeaker">您是否可以听到声音？</div>
+          <div class="desc" v-show="isSpeaker">
+            您是否听到扬声器发出的声音？
+          </div>
           <div class="btn-wrap">
             <!-- 摄像头检测和麦克风检测 -->
             <template v-if="isCamera || isMicrophone">
@@ -334,18 +336,20 @@ export default defineComponent({
           actualVideoMuted: false,
         },
       });
-      sessionStorage.setItem(
-        "checkFinish",
-        JSON.stringify({
-          cameraConfig: {
-            ...cameraConfig,
-            volume: stepsData.value[1].volume,
-            actualAudioMuted: false,
-            actualVideoMuted: false,
-          },
-          speakerDevice: speakerConfig,
-        })
-      );
+      if (cameraConfig.video && cameraConfig.audio) {
+        sessionStorage.setItem(
+          "checkFinish",
+          JSON.stringify({
+            cameraConfig: {
+              ...cameraConfig,
+              volume: stepsData.value[1].volume,
+              actualAudioMuted: false,
+              actualVideoMuted: false,
+            },
+            speakerDevice: speakerConfig,
+          })
+        );
+      }
       rtx.emit("checkFinish");
     };
 

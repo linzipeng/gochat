@@ -40,16 +40,20 @@ export default defineComponent({
   overflow: hidden;
   vertical-align: middle;
   user-select: none;
+  &:hover {
+    fill: currentColor;
+  }
+  &:active {
+    fill: currentColor;
+  }
 }
 
 .icon-button {
   cursor: pointer;
   &:hover {
-    fill: currentColor;
     color: #9f76ff;
   }
   &:active {
-    fill: currentColor;
     color: white;
   }
 }

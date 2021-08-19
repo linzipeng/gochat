@@ -457,6 +457,7 @@ export default defineComponent({
   padding-top: 75%;
   box-sizing: border-box;
   border-radius: 4px;
+  margin-bottom: 8px;
   &:hover {
     .anchor-operate-audience {
       display: inline-block;
