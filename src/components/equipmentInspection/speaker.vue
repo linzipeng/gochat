@@ -202,8 +202,8 @@ export default defineComponent({
       const value = Number(e.target.value);
       volume.value = value;
       rtx.emit("currentVolume", { speacker: value });
-      if (speakerAudio) {
-        speakerAudio.volume = value / 100;
+      if (speakerAudio.value) {
+        speakerAudio.value.volume = value / 100;
       }
     };
 
