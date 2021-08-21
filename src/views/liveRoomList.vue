@@ -361,7 +361,7 @@ export default defineComponent({
   width: 100%;
   height: 100%;
   min-width: 1280px;
-  background: url("../assets/bg/bg.svg") no-repeat center;
+  background: url("../assets/bg/bg.png") no-repeat center;
   background-size: cover;
   line-height: 56px;
   color: white;

@@ -230,8 +230,8 @@ body {
 }
 
 .el-select {
-  width: 253px;
-  margin-top: 6px;
+  width: 256px;
+  margin-top: 0px;
   margin-bottom: 12px;
   .el-input {
     font-size: 12px;

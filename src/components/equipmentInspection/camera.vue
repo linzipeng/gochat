@@ -14,7 +14,7 @@
           :label="item.deviceName"
         ></el-option>
       </el-select>
-      <div v-else class="disable-select" style="width: 268px">
+      <div v-else class="disable-select">
         <icon name="icon_fail"></icon>
         {{ errMsg }}
       </div>
@@ -65,7 +65,7 @@ export default defineComponent({
   setup(props, rtx) {
     const store = useStore<MainStore>();
     const deviceList = ref<ZegoDeviceInfo[]>([]);
-    const errMsg = ref("未检测到可用摄像头"); // 错误信息登记
+    const errMsg = ref("未检测到摄像头设备"); // 错误信息登记
     const preCamera = ref<HTMLVideoElement | null>(null);
     const previewCamera = ref<MediaStream | null>(null);
     const currentDevice = ref<ZegoDeviceInfo>({
@@ -124,7 +124,7 @@ export default defineComponent({
         // 无可用设备
         if (deviceList.value.length === 0 || !deviceList.value[0].deviceID) {
           closeCamera();
-          errMsg.value = "未检测到可用摄像头";
+          errMsg.value = "未检测到摄像头设备";
           rtx.emit("isDeviceCanUse", false, errMsg.value);
         } else {
           // 设置中就采用目前推流的设备
@@ -145,16 +145,7 @@ export default defineComponent({
           rtx.emit("isDeviceCanUse", true);
         }
       } catch (error) {
-        // console.log(error);
-        if (error.message === "Permission denied") {
-          errMsg.value = "权限不足";
-        }
-        if (
-          error.message === "Permission denied by system" ||
-          error.message === "Could not start video source"
-        ) {
-          errMsg.value = "系统未授权使用摄像头";
-        }
+        errMsg.value = "未授权使用摄像头";
         rtx.emit("isDeviceCanUse", false, errMsg.value);
         throw error;
       }
@@ -218,14 +209,10 @@ export default defineComponent({
   .box-item {
     display: flex;
     align-items: center;
-    margin-bottom: 5px;
     width: 100%;
     font-size: 14px;
     color: #b3b6ba;
     text-align: right;
-    .el-select {
-      width: 268px;
-    }
     .label {
       align-self: flex-start;
       display: inline-block;
@@ -233,13 +220,14 @@ export default defineComponent({
       width: 131px;
       height: 32px;
       line-height: 32px;
+      font-size: 14px;
     }
     .item-content {
       display: flex;
       flex-direction: column;
       .video {
-        width: 268px;
-        height: 158px;
+        width: 256px;
+        height: 145px;
         border-radius: 4px;
         background-color: #16151a;
         overflow: hidden;
@@ -268,7 +256,6 @@ export default defineComponent({
         .video {
           position: relative;
           margin-bottom: 8px;
-          height: 158px;
         }
       }
     }

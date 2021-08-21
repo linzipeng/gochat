@@ -39,11 +39,12 @@
       <p>帧率：{{ qualityState.FPS }}</p>
       <p>丢包率：{{ qualityState.lostRate }}</p>
     </div>
-    <icon
+    <div
       class="attendee-mic"
       v-if="$route.params.roomId !== '100000' && user?.mic === 1"
-      name="icon_mic_off"
-    ></icon>
+    >
+      <icon name="icon_mic_off"></icon>
+    </div>
     <video
       v-show="$route.params.roomId === '100000' || user?.camera === 2"
       ref="video"
@@ -503,11 +504,16 @@ export default defineComponent({
   right: 8px;
   bottom: 12px;
   background: rgba(0, 0, 0, 0.2);
-  color: #e0dde3;
   border-radius: 4px;
   width: 22px;
   height: 22px;
   z-index: 10;
+  .icon {
+    width: 22px;
+    height: 20px;
+    margin-bottom: 3px;
+    color: #e0dde3;
+  }
 }
 .main-video {
   object-fit: cover;

@@ -215,6 +215,7 @@ import { useStore } from "vuex";
 import router from "@/router";
 import mainVideo from "@/components/mainVideo.vue";
 import {
+  checkDevices,
   closeRoom,
   createRoom,
   getAttendeeList,
@@ -362,16 +363,39 @@ export default defineComponent({
       }
     };
 
-    const applyForMicro = function (
-      action: 1 | 2 | 3 | 4,
-      targetUid: number
-    ): void {
-      if (action === 1 && audienceStreamId.value.length > 2) {
+    const check = async function () {
+      const cameraMessage = await checkDevices({ video: true, audio: false });
+      if (cameraMessage) {
         ElMessage({
           customClass: "alert-box",
-          message: "最多支持3名观众连麦",
+          message: `申请失败，${cameraMessage}`,
         });
-        return;
+        return false;
+      }
+      const microphoneMessage = await checkDevices({ video: false, audio: true });
+      if (microphoneMessage) {
+        ElMessage({
+          customClass: "alert-box",
+          message: `申请失败，${microphoneMessage}`,
+        });
+        return false;
+      }
+      return true;
+    };
+
+    const applyForMicro = async function (
+      action: 1 | 2 | 3 | 4,
+      targetUid: number
+    ) {
+      if (action === 1) {
+        if (!(await check())) return;
+        if (audienceStreamId.value.length > 2) {
+          ElMessage({
+            customClass: "alert-box",
+            message: "最多支持3名观众连麦",
+          });
+          return;
+        }
       }
       onstageRequestAction(
         store.state.user.uid,
@@ -492,13 +516,15 @@ export default defineComponent({
                               "zg-button small-button border-radius-5 ",
                           }
                         )
-                          .then(() => {
+                          .then(async () => {
+                            const isOk = await check();
                             onstageInviteAction(
                               store.state.user.uid,
                               store.state.room.room_id,
                               store.state.room.host_id,
                               store.state.user.nick_name,
-                              3
+                              isOk ? 3 : 4,
+                              isOk ? "" : `连麦失败`
                             )
                               .then(() => {
                                 // connectedAnthor(true);
@@ -540,7 +566,9 @@ export default defineComponent({
                         );
                         ElMessage({
                           customClass: "alert-box",
-                          message: `${attendee.nick_name} 已拒绝连麦邀请`,
+                          message: `${attendee.nick_name}${
+                            data.extra ? data.extra : "已拒绝连麦邀请"
+                          }`,
                         });
                       } else if (data.type === 7) {
                         // 观众同意连麦，但是连麦人数已上限

@@ -15,7 +15,7 @@
             :label="item.deviceName"
           ></el-option>
         </el-select>
-        <div v-else class="disable-select" style="width: 268px">
+        <div v-else class="disable-select">
           <icon name="icon_fail"></icon>
           {{ errMsg }}
         </div>
@@ -78,7 +78,7 @@ export default defineComponent({
   setup(props, rtx) {
     const store = useStore<MainStore>();
     const deviceList = ref<ZegoDeviceInfo[]>([]);
-    const errMsg = ref("未检测到可用麦克风"); // 错误信息登记
+    const errMsg = ref("未检测到麦克风设备"); // 错误信息登记
     const previewAudio = ref<HTMLAudioElement | null>(null);
     const previewMic = ref<MediaStream | null>(null);
     const currentDevice = ref<ZegoDeviceInfo>({
@@ -86,7 +86,7 @@ export default defineComponent({
       deviceID: "",
     });
     const micRealVolume = ref(0); // 麦克风音量
-    const volumeLength = 27;
+    const volumeLength = 22;
     const volume = ref(50);
     // element-plus bug
     let deviceListTemp: ZegoDeviceInfo[] = [];
@@ -162,7 +162,7 @@ export default defineComponent({
 
         // 无可用设备
         if (deviceList.value.length === 0 || !deviceList.value[0].deviceID) {
-          errMsg.value = "未检测到可用麦克风";
+          errMsg.value = "未检测到麦克风设备";
           rtx.emit("isDeviceCanUse", false, errMsg.value);
           closeMic();
         } else {
@@ -189,17 +189,7 @@ export default defineComponent({
           rtx.emit("isDeviceCanUse", true);
         }
       } catch (error) {
-        console.log(error);
-        errMsg.value = "浏览器未授权使用麦克风";
-        if (error.message === "Permission denied") {
-          errMsg.value = "浏览器未授权使用麦克风";
-        }
-        if (
-          error.message === "Permission denied by system" ||
-          error.message === "Could not start audio source"
-        ) {
-          errMsg.value = "系统未授权使用麦克风";
-        }
+        errMsg.value = "未授权使用麦克风";
         rtx.emit("isDeviceCanUse", false, errMsg.value);
         throw error;
       }
@@ -277,6 +267,7 @@ export default defineComponent({
       width: 131px;
       height: 32px;
       line-height: 32px;
+      font-size: 14px;
     }
     .item-content {
       display: flex;
@@ -290,7 +281,7 @@ export default defineComponent({
         align-items: center;
         margin-top: 26px;
         margin-bottom: 26px;
-        width: 268px;
+        width: 256px;
         .voice-img {
           margin-right: 24px;
           // background-image: url("../../assets/images/play.png");
@@ -300,10 +291,10 @@ export default defineComponent({
         }
         .voice-item {
           flex-shrink: 0;
-          margin-right: 6px;
+          margin-right: 8px;
           width: 4px;
           height: 22px;
-          background-color: rgba(33, 30, 36, 0.7);
+          background-color: rgba(33, 30, 36, 1);
           border-radius: 4px;
         }
       }
@@ -334,7 +325,7 @@ export default defineComponent({
             width: 181px;
             height: 4px;
             border-radius: 10px; /*这个属性设置使填充进度条时的图形为圆角*/
-            background-color: #1c1c20;
+            background-color: rgba(33, 30, 36, 1);
           }
           input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
@@ -368,9 +359,6 @@ export default defineComponent({
           font-size: 12px;
         }
       }
-    }
-    &.microphone-box {
-      margin-bottom: 90px;
     }
   }
   &.settings-box-item {

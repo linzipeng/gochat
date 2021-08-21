@@ -260,7 +260,7 @@ export default defineComponent({
           width: 160px;
           height: 4px;
           border-radius: 10px; /*这个属性设置使填充进度条时的图形为圆角*/
-          background-color: #1c1c20;
+          background-color: rgba(33, 30, 36, 1);
         }
         input[type="range"]::-webkit-slider-thumb {
           -webkit-appearance: none;

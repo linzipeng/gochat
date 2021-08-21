@@ -35,7 +35,9 @@
                 }"
               ></div>
             </div>
-            <div class="title">{{ item.title }}</div>
+            <div class="title" :class="{ 'title-active': item.isActive }">
+              {{ item.title }}
+            </div>
           </div>
           <div
             class="line"
@@ -406,9 +408,25 @@ export default defineComponent({
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.6);
+  .el-select {
+    .el-input {
+      height: 32px;
+      line-height: 32px;
+      .el-input__inner {
+        height: 32px;
+        line-height: 32px;
+      }
+    }
+  }
+  .disable-select {
+    width: 256px;
+    height: 32px;
+    line-height: 32px;
+    margin-bottom: 12px;
+  }
   .dialog {
-    width: 610px;
-    height: 544px;
+    width: 560px;
+    height: 506px;
     background-color: #2c253c;
     border-radius: 4px;
     box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.3);
@@ -417,7 +435,7 @@ export default defineComponent({
       justify-content: space-between;
       align-items: center;
       width: 100%;
-      height: 48px;
+      height: 44px;
       .title {
         margin-left: 30px;
         font-size: 14px;
@@ -426,18 +444,26 @@ export default defineComponent({
         display: flex;
         justify-content: center;
         align-items: center;
-        margin-right: 8px;
-        width: 30px;
-        height: 30px;
-        cursor: pointer;
+        margin-right: 16px;
+        width: 18px;
+        height: 18px;
+        svg {
+          fill: #776e83;
+          &:hover {
+            fill: currentColor;
+          }
+          &:active{
+            fill: currentColor;
+          }
+        }
       }
     }
     .steps {
       display: flex;
       justify-content: center;
       align-items: center;
-      width: 610px;
-      height: 122px;
+      width: 100%;
+      height: 110px;
       background-color: rgba(0, 0, 0, 0.08);
       .steps-item {
         display: flex;
@@ -464,12 +490,15 @@ export default defineComponent({
           }
           .title {
             font-size: 12px;
-            color: #b3b6ba;
+            color: #82798F;
+          }
+          .title-active {
+            color: #E0DDE3;
           }
         }
         .line {
           margin-top: 27px;
-          width: 64px;
+          width: 69px;
           height: 2px;
           background-image: url("../../assets/bg/img_line_press.png");
           background-size: cover;
@@ -483,18 +512,18 @@ export default defineComponent({
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      height: 374px;
+      height: calc(100% - 154px);
       .content-bottom {
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        margin-bottom: 38px;
+        margin-bottom: 33px;
         font-size: 12px;
         line-height: 14px;
         .btn-wrap {
           display: flex;
-          margin-top: 20px;
+          margin-top: 18px;
           text-align: center;
           line-height: 30px;
           .btn {

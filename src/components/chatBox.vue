@@ -50,6 +50,7 @@
           resize="none"
           :maxlength="30"
           placeholder="说点什么呢..."
+          @keydown.enter="sendMessage"
           @focus="(event) => placeholder(event.target, '')"
           @blur="(event) => placeholder(event.target, '说点什么呢...')"
           v-model="chatArea"
@@ -91,7 +92,7 @@
               v-else-if="person.onstage_state === 2 && isAnchor"
               class="onstage"
             >
-              连麦中...
+              已连麦
             </span>
             <template v-else-if="isAnchor">
               <div
@@ -120,7 +121,6 @@ import {
   PropType,
   ref,
   toRefs,
-  watch,
 } from "vue";
 import { onstageInviteAction } from "@/service/room";
 import { useStore } from "vuex";

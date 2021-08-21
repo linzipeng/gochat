@@ -183,7 +183,7 @@ export const onstageRequestAction = function (
   nick_name: string,
   target_uid: number,
   room_id: string,
-  action: 1 | 2 | 3 | 4, // 1.申请 2.取消申请 3. 接受申请 4. 拒绝申请
+  action: 1 | 2 | 3 | 4 // 1.申请 2.取消申请 3. 接受申请 4. 拒绝申请
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     api("onstageRequestAction", { uid, nick_name, room_id, target_uid, action })
@@ -206,9 +206,17 @@ export const onstageInviteAction = function (
   target_uid: number,
   nick_name: string,
   action: 1 | 2 | 3 | 4, // 1.邀请 2.取消邀请 3. 接受邀请 4. 拒绝邀请
+  extra?: string,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    api("onstageInviteAction", { uid, room_id, target_uid, nick_name, action })
+    api("onstageInviteAction", {
+      uid,
+      room_id,
+      target_uid,
+      nick_name,
+      action,
+      extra,
+    })
       .then(({ ret }) => {
         if (ret.code === 0) {
           resolve();
@@ -246,7 +254,7 @@ export const getRoomList = function (
 // 拉取成员列表
 export const getAttendeeList = function (
   uid: number,
-  room_id: string,
+  room_id: string
 ): Promise<Array<User>> {
   return new Promise((resolve) => {
     api("getAttendeeList", {
@@ -389,4 +397,38 @@ export const logoutRoom = async function (
       keepLiving.stop();
     }
   });
+};
+
+// 检查摄像头权限
+export const checkDevices = async function (
+  { video, audio }: { video: boolean; audio: boolean } = {
+    video: true,
+    audio: true,
+  }
+) {
+  let errMessage = "";
+  try {
+    // 先触发摄像头调用，调起授权，但先不预览
+    const authStream = await zg.createStream({
+      camera: { video, audio },
+    });
+    zg.destroyStream(authStream);
+    const { cameras, microphones } = await zg.enumDevices();
+    if (video && audio && cameras.length === 0 && microphones.length === 0) {
+      errMessage = "未检查到可用摄像头和摄像头";
+    } else if (video && cameras.length === 0) {
+      errMessage = "未检查到可用摄像头";
+    } else if (audio && microphones.length === 0) {
+      errMessage = "未检查到可用麦克风";
+    }
+  } catch (error) {
+    if (video && audio) {
+      errMessage = "请先授权摄像头或麦克风权限";
+    } else if (video) {
+      errMessage = "请先授权摄像头权限";
+    } else {
+      errMessage = "请先授权麦克风权限";
+    }
+  }
+  return errMessage;
 };

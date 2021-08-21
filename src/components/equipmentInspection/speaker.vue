@@ -15,7 +15,7 @@
             :label="item.deviceName"
           ></el-option>
         </el-select>
-        <div v-else class="disable-select" style="width: 268px">
+        <div v-else class="disable-select">
           <icon name="icon_fail"></icon>
           {{ errMsg }}
         </div>
@@ -69,7 +69,7 @@
         </div>
       </div>
     </div>
-    <audio loop crossOrigin="anonymous" id="speakerAudio" />
+    <audio loop crossOrigin="anonymous" ref="speakerAudio" />
   </div>
 </template>
 
@@ -87,14 +87,14 @@ export default defineComponent({
     const store = useStore<MainStore>();
     const deviceList = ref<ZegoDeviceInfo[]>([]);
     const errMsg = ref("未检测到可用扬声器"); // 错误信息登记
-    let speakerAudio: any;
+    const speakerAudio = ref<HTMLAudioElement | null>(null);
     const currentDevice = ref<ZegoDeviceInfo>({
       deviceName: "",
       deviceID: "",
     });
     const isSpeakerPlaying = ref(false);
     // 扬声器检测的音量声浪控制
-    const volumeLength = 21;
+    const volumeLength = 18;
     // element-plus bug
     let deviceListTemp: ZegoDeviceInfo[] = [];
 
@@ -102,40 +102,36 @@ export default defineComponent({
     const closeSpeaker = function () {
       isSpeakerPlaying.value = false;
       speakerRealVolume.value = 0;
-      if (speakerAudio) {
-        speakerAudio.pause();
+      if (speakerAudio.value) {
+        speakerAudio.value.pause();
       }
       zg.off("capturedSoundLevelUpdate");
     };
 
     // 打开试听扬声器
     const openSpeaker = async function () {
-      try {
-        closeSpeaker();
+      closeSpeaker();
 
-        isSpeakerPlaying.value = true;
-        // 创建一个静音播放的audio 标签用于获取音浪
-        speakerAudio = new Audio();
-        speakerAudio.src = require("@/assets/music/Happy.mp3");
-        speakerAudio.crossOrigin = "anonymous";
-        speakerAudio.loop = true;
-        (document.getElementById("speakerAudio") as HTMLAudioElement).volume =
-          volume.value / 100;
+      isSpeakerPlaying.value = true;
+      if (speakerAudio.value) {
+        speakerAudio.value.src = require("@/assets/music/Happy.mp3");
+        speakerAudio.value.crossOrigin = "anonymous";
+        speakerAudio.value.loop = true;
+        speakerAudio.value.volume = volume.value / 100;
         if (currentDevice.value.deviceID) {
           // 切换扬声器设备
-          await speakerAudio.setSinkId(currentDevice.value.deviceID);
+          await (speakerAudio.value as any).setSinkId(
+            currentDevice.value.deviceID
+          );
         }
-        speakerAudio.play();
-
-        // 开启音浪回调
-        zg.setSoundLevelDelegate(true, 100);
-        zg.on("capturedSoundLevelUpdate", (num) => {
-          speakerRealVolume.value = Math.round((num / 100) * volumeLength);
-        });
-      } catch (e) {
-        // this.$emit('isDeviceCanUse', false);
-        console.error("Your browser does not support AudioContext", e);
+        speakerAudio.value.play();
       }
+
+      // 开启音浪回调
+      zg.setSoundLevelDelegate(true, 100);
+      zg.on("capturedSoundLevelUpdate", (num) => {
+        speakerRealVolume.value = Math.round((num / 100) * volumeLength);
+      });
     };
 
     const check = async function () {
@@ -230,6 +226,7 @@ export default defineComponent({
     });
 
     return {
+      speakerAudio,
       speakerRealVolume,
       isSpeakerPlaying,
       errMsg,
@@ -255,7 +252,7 @@ export default defineComponent({
 .speak-box {
   display: flex;
   flex-direction: column;
-  margin-top: 22px;
+  margin-top: 24px;
   .box-item {
     display: flex;
     align-items: center;
@@ -271,6 +268,7 @@ export default defineComponent({
       width: 131px;
       height: 32px;
       line-height: 32px;
+      font-size: 14px;
     }
     .item-content {
       display: flex;
@@ -282,15 +280,13 @@ export default defineComponent({
       .voice {
         display: flex;
         align-items: center;
-        margin-top: 26px;
-        margin-bottom: 26px;
-        // width: 264px;
+        margin: 17px 0;
         .voice-img {
-          margin-right: 24px;
+          margin-right: 21px;
           background-image: url("../../assets/mediaicon/play-music.svg");
           background-size: cover;
-          width: 34px;
-          height: 34px;
+          width: 28px;
+          height: 28px;
           &:hover {
             cursor: pointer;
             background-image: url("../../assets/mediaicon/play-music-hover.svg");
@@ -304,11 +300,14 @@ export default defineComponent({
         }
         .voice-item {
           flex-shrink: 0;
-          margin-right: 6px;
+          margin-right: 8px;
           width: 4px;
           height: 22px;
-          background-color: #1c1c20;
+          background-color: rgba(33, 30, 36, 1);
           border-radius: 2px;
+          &:last-child {
+            margin-right: 0;
+          }
         }
         // &.speaker-voice {
         //     width: 204px;
@@ -341,7 +340,7 @@ export default defineComponent({
             width: 181px;
             height: 4px;
             border-radius: 10px; /*这个属性设置使填充进度条时的图形为圆角*/
-            background-color: #1c1c20;
+            background-color: rgba(33, 30, 36, 1);
           }
           input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;

@@ -2,12 +2,7 @@
   <div class="media-setting">
     <div class="media-setting-header">
       <span> 设置 </span>
-      <icon
-        name="icon_close"
-        style="float: right"
-        :isButton="true"
-        @click="$emit('show')"
-      ></icon>
+      <icon name="icon_close" :isButton="true" @click="$emit('show')"></icon>
     </div>
     <div class="media-setting-body">
       <el-tabs tab-position="left" v-model="tabActive" @tab-click="tabClick">
@@ -140,6 +135,7 @@ import { zg } from "@/service/SDKServer";
 import { ZegoDeviceInfo } from "zego-express-engine-webrtc/sdk/code/zh/ZegoExpressEntity.web";
 import { useStore } from "vuex";
 import { MainStore } from "@/store/store";
+import { checkDevices } from "@/service/room";
 
 const videoQualityType = {
   "1": {
@@ -169,12 +165,12 @@ export default defineComponent({
     const cameras = ref({
       value: "",
       options: [] as ZegoDeviceInfo[],
-      errMsg: "未检测到可用摄像头",
+      errMsg: "未检测到摄像头设备",
     });
     const microphones = ref({
       value: "",
       options: [] as ZegoDeviceInfo[],
-      errMsg: "未检测到可用麦克风",
+      errMsg: "未检测到麦克风设备",
     });
     const speakers = ref({
       value: "",
@@ -183,93 +179,75 @@ export default defineComponent({
     });
 
     const check = async function () {
+      // 先触发摄像头调用，调起授权
+      const cameraMessage = await checkDevices({ video: true, audio: false });
       // 先触发麦克风调用，调起授权
-      const authStream = await zg.createStream({
-        camera: { video: true, audio: true },
+      const microphoneMessage = await checkDevices({
+        video: false,
+        audio: true,
       });
-      zg.destroyStream(authStream);
       zg.enumDevices().then((devices) => {
-        try {
-          // 处理摄像头
+        // 处理摄像头
+        if (cameraMessage) {
+          cameras.value.errMsg = cameraMessage;
+        } else {
           cameras.value.options = devices.cameras;
-          // 无可用设备
-          if (
-            cameras.value.options.length === 0 ||
-            !cameras.value.options[0].deviceID
-          ) {
-            cameras.value.errMsg = "未检测到摄像头设备";
-          } else {
-            // 设置中就采用目前推流的设备
-            cameras.value.options.forEach((val: ZegoDeviceInfo) => {
-              if (val.deviceID === store.state.cameraConfig.videoInput) {
-                cameras.value.value = val.deviceID;
-              }
-            });
-            if (!cameras.value.value) {
-              // 设备检测||推流中的设备被移除了  就采用第一个设备
-              cameras.value.value = cameras.value.options[0].deviceID;
+          // 设置中就采用目前推流的设备
+          cameras.value.options.forEach((val: ZegoDeviceInfo) => {
+            if (val.deviceID === store.state.cameraConfig.videoInput) {
+              cameras.value.value = val.deviceID;
             }
+          });
+          if (!cameras.value.value) {
+            // 设备检测||推流中的设备被移除了  就采用第一个设备
+            cameras.value.value = cameras.value.options[0].deviceID;
           }
-        } catch (error) {
-          cameras.value.errMsg = "系统未授权使用摄像头";
         }
 
-        try {
-          // 处理麦克风
+        // 处理麦克风
+        if (microphoneMessage) {
+          microphones.value.errMsg = microphoneMessage;
+        } else {
           microphones.value.options = devices.microphones.filter(
             (val) =>
               // 去除默认设备
               val.deviceID !== "default" && val.deviceID !== "communications"
           );
-          // 无可用设备
-          if (
-            microphones.value.options.length === 0 ||
-            !microphones.value.options[0].deviceID
-          ) {
-            microphones.value.errMsg = "未检测到麦克风设备";
-          } else {
-            // 设置中就采用目前推流的设备
-            microphones.value.options.forEach((val: ZegoDeviceInfo) => {
-              if (val.deviceID === store.state.cameraConfig.audioInput) {
-                microphones.value.value = val.deviceID;
-              }
-            });
-            if (!microphones.value?.value) {
-              // 设备检测||推流中的设备被移除了  就采用第一个设备
-              microphones.value.value = microphones.value.options[0].deviceID;
+          // 设置中就采用目前推流的设备
+          microphones.value.options.forEach((val: ZegoDeviceInfo) => {
+            if (val.deviceID === store.state.cameraConfig.audioInput) {
+              microphones.value.value = val.deviceID;
             }
+          });
+          if (!microphones.value?.value) {
+            // 设备检测||推流中的设备被移除了  就采用第一个设备
+            microphones.value.value = microphones.value.options[0].deviceID;
           }
-        } catch (error) {
-          microphones.value.errMsg = "系统未授权使用麦克风";
         }
 
-        try {
-          // 处理扬声器
-          speakers.value.options = devices.speakers.filter(
-            (val) =>
-              // 去除默认设备
-              val.deviceID !== "default" && val.deviceID !== "communications"
-          );
-          // 无可用设备
-          if (
-            speakers.value.options.length === 0 ||
-            !speakers.value.options[0].deviceID
-          ) {
-            speakers.value.errMsg = "未检测到扬声器设备";
-          } else {
-            // 设置中就采用目前推流的设备
-            speakers.value.options.forEach((val: ZegoDeviceInfo) => {
-              if (val.deviceID === store.state.speakerDevice.deviceID) {
-                speakers.value.value = val.deviceID;
-              }
-            });
-            if (!speakers.value?.value) {
-              // 设备检测||推流中的设备被移除了  就采用第一个设备
-              speakers.value.value = speakers.value.options[0].deviceID;
+        // 处理扬声器
+        speakers.value.options = devices.speakers.filter(
+          (val) =>
+            // 去除默认设备
+            val.deviceID !== "default" && val.deviceID !== "communications"
+        );
+        // 无可用设备
+        if (
+          speakers.value.options.length === 0 ||
+          !speakers.value.options[0].deviceID
+        ) {
+          speakers.value.errMsg = "未检测到可用扬声器";
+        } else {
+          // 设置中就采用目前推流的设备
+          speakers.value.options.forEach((val: ZegoDeviceInfo) => {
+            if (val.deviceID === store.state.speakerDevice.deviceID) {
+              speakers.value.value = val.deviceID;
             }
+          });
+          if (!speakers.value?.value) {
+            // 设备检测||推流中的设备被移除了  就采用第一个设备
+            speakers.value.value = speakers.value.options[0].deviceID;
           }
-        } catch (error) {
-          microphones.value.errMsg = "系统未授权使用麦克风";
         }
       });
     };
@@ -361,6 +339,11 @@ export default defineComponent({
     color: #aca5b4;
     height: 44px;
     width: 100%;
+    svg {
+      float: right;
+      width: 18px;
+      height: 18px;
+    }
   }
   .media-setting-body {
     display: flex;
@@ -437,7 +420,6 @@ export default defineComponent({
         }
       }
       .el-select {
-        width: 256px;
         .el-input__inner {
           color: #e0dde3;
           text-overflow: ellipsis;
