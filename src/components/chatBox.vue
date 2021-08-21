@@ -56,10 +56,15 @@
           v-model="chatArea"
         >
         </el-input>
-        <span class="chat-enter" @click="sendMessage">
-          <i
+        <span
+          class="chat-enter"
+          :class="{ disabled: chatArea.trim().length === 0 }"
+          @click="sendMessage"
+        >
+          <icon name="icon_send"></icon>
+          <!-- <i
             :class="chatArea.trim().length > 0 ? 'abled-btn' : 'disabled-btn'"
-          ></i>
+          ></i> -->
         </span>
       </el-tab-pane>
       <el-tab-pane :label="`在线人数·${attendeeList?.length}`" name="online">
@@ -99,7 +104,11 @@
               >
                 已邀请
               </div>
-              <div v-else class="invite invite-btn" @click="invite(person.uid)">
+              <div
+                v-else
+                class="zg-button invite-btn"
+                @click="invite(person.uid)"
+              >
                 邀请连麦
               </div>
             </template>
@@ -344,11 +353,6 @@ export default defineComponent({
       color: #82798F;
       border: 1px solid #82798F;
     }
-    .invite {
-      cursor: pointer;
-      color: #E0DDE3;
-      background: linear-gradient(126deg, #a754ff 0%, #510df1 100%);
-    }
   }
   .el-tabs {
     height: calc(100% - 15px);
@@ -445,31 +449,33 @@ export default defineComponent({
   .chat-enter {
     width: 53px;
     height: 29px;
-    cursor: pointer;
+    cursor: not-allowed;
     position: absolute;
     right: 14px;
     bottom: 14px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 44px;
-    i {
-      width: 33px;
-      height: 29px;
-      display: inline-block;
-      padding: 0 10px;
+    svg {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: auto;
+      color: #8d8d8d;
+      width: 15px;
+      height: 15px;
     }
-    i::before {
-      content: " ";
+    &:not(.disabled) {
+      cursor: pointer;
+      svg {
+        color: #dcd8df;
+      }
     }
-    .disabled-btn {
-      background: url("../assets/mediaicon/disabled-chat-btn.svg") no-repeat
-        center;
-      cursor: not-allowed;
-    }
-    .abled-btn {
-      background: url("../assets/mediaicon/abled-chat-btn.svg") no-repeat center;
-    }
-    &:hover {
-      opacity: 0.8;
+    &:not(.disabled):hover {
+      svg {
+        color: #8d8d8d;
+      }
     }
   }
 }

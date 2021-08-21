@@ -121,13 +121,12 @@ body {
 .zg-button {
   cursor: pointer;
   border: none !important;
-  background: linear-gradient(
-    126deg,
-    rgba(167, 84, 255, 1) 0%,
-    rgba(81, 13, 241, 1) 100%
-  ) !important;
+  background: #d8d8d8 linear-gradient(126deg, #a754ff 0%, #510df1 100%) !important;
   &:not(.disabled-zg-button):hover {
-    opacity: 0.8;
+    background: #D8D8D8 linear-gradient(126deg, #C568FF 0%, #5B17FB 100%) !important;
+  }
+  &:not(.disabled-zg-button):active {
+    background: linear-gradient(126deg, #9D4AF5 0%, #4703E7 100%) !important;
   }
   border-radius: 44px;
 }
@@ -227,7 +226,7 @@ body {
   vertical-align: middle;
   background: #362f46 !important;
   color: #e0dde3 !important;
-  line-height: 1.0 !important;
+  line-height: 1 !important;
 }
 
 .about-popover-position {
@@ -265,7 +264,7 @@ body {
       background-color: #2c253c;
       border: 1px solid rgba(255, 255, 255, 0.1);
       &:focus {
-        border-color: #9F76FF;
+        border-color: #9f76ff;
         background: rgba(255, 255, 255, 0.05);
       }
     }
@@ -297,16 +296,6 @@ body {
   .el-message-box__message {
     color: #e0dde3;
   }
-  .message-cancel-btn {
-    border: none !important;
-    background: rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0px 6px 10px 0px rgba(0, 0, 0, 0.3) !important;
-    color: #e0dde3;
-    &:hover {
-      opacity: 0.8;
-      color: #e0dde3;
-    }
-  }
   .el-message-box__btns {
     padding: 32px 0 0;
     button {
@@ -319,6 +308,21 @@ body {
   }
   .border-radius-5 {
     border-radius: 5px !important;
+  }
+}
+
+.message-cancel-btn {
+  border: none !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0px 6px 10px 0px rgba(0, 0, 0, 0.3) !important;
+  color: #e0dde3 !important;
+  &:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #e0dde3 !important;
+  }
+  &:active {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #e0dde3 !important;
   }
 }
 

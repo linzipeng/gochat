@@ -56,7 +56,7 @@
             ></icon>
           </template>
         </el-popover>
-        <span class="one-line"></span>
+        <span class="one-line" v-if="isAnchor"></span>
         <span
           class="room-operation"
           :class="isPlaying ? 'close-anchor' : 'zg-button start-anchor'"
@@ -160,19 +160,19 @@
           <template v-if="!isAnchor">
             <span
               v-if="audienceStreamId.includes($store.state.user.uid.toString())"
-              class="room-operation cancel-micro"
+              class="room-operation cancel-micro message-cancel-btn"
               @click="destroyStream"
               ><icon name="icon_wheat"></icon>结束连麦</span
             >
             <span
               v-else-if="tryingConnected"
-              class="room-operation cancel-micro"
+              class="room-operation cancel-micro message-cancel-btn"
               @click="applyForMicro(2, $store.state.room.host_id)"
               ><icon name="icon_wheat"></icon>取消连麦</span
             >
             <span
               v-else
-              class="room-operation apply-for-micro"
+              class="room-operation apply-for-micro zg-button"
               @click="applyForMicro(1, $store.state.room.host_id)"
               ><icon name="icon_wheat"></icon>申请连麦</span
             >
@@ -1091,7 +1091,10 @@ export default defineComponent({
       height: 30px;
       line-height: 30px;
       &:hover {
-        opacity: 0.8;
+        background: rgba(255, 102, 107, 0.2);
+      }
+      &:active {
+        background: rgba(255, 74, 80, 0.1);
       }
     }
   }
@@ -1127,7 +1130,6 @@ export default defineComponent({
         width: 90px;
         height: 32px;
         line-height: 32px;
-        background: linear-gradient(126deg, #a754ff 0%, #510df1 100%);
         position: absolute;
         right: 24px;
       }
@@ -1136,7 +1138,6 @@ export default defineComponent({
         width: 90px;
         height: 32px;
         line-height: 32px;
-        background: rgba(224, 221, 227, 0.1);
         position: absolute;
         right: 24px;
       }
