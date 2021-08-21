@@ -160,13 +160,13 @@
               v-if="audienceStreamId.includes($store.state.user.uid.toString())"
               class="room-operation cancel-micro"
               @click="destroyStream"
-              >结束连麦</span
+              ><icon name="icon_wheat"></icon>结束连麦</span
             >
             <span
               v-else-if="tryingConnected"
               class="room-operation cancel-micro"
               @click="applyForMicro(2, $store.state.room.host_id)"
-              >取消连麦</span
+              ><icon name="icon_wheat"></icon>取消连麦</span
             >
             <span
               v-else
@@ -1091,6 +1091,11 @@ export default defineComponent({
     line-height: 12px;
     cursor: pointer;
     text-align: center;
+    svg {
+      margin-right: 5px;
+      width: 16px;
+      height: 15px;
+    }
   }
 
   .video-area {
