@@ -174,7 +174,11 @@ export default defineComponent({
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #79787d;
+    border-bottom: 1px solid rgba(121, 120, 125, 0.19);
+    svg {
+      width: 12px;
+      height: 12px;
+    }
   }
   .content {
     padding: 0 80px;
@@ -184,12 +188,13 @@ export default defineComponent({
       justify-content: space-between;
       align-items: center;
       margin-top: 48px;
-      margin-bottom: 26px;
+      margin-bottom: 32px;
       .music-btn-container {
         width: 210px;
         display: flex;
         text-align: center;
         justify-content: space-between;
+        font-size: 12px;
         .music-btn {
           position: relative;
           width: 44px;
@@ -213,7 +218,7 @@ export default defineComponent({
           &:hover {
             background: #9f76ff;
             .music-icon {
-              background: url("../assets/music/play.svg") no-repeat center;
+              background: url("../assets/music/play.svg") no-repeat right;
             }
           }
           &.is-active {
@@ -226,8 +231,8 @@ export default defineComponent({
           }
           .music-playing {
             position: absolute;
-            right: 0;
-            bottom: 0;
+            right: -2px;
+            bottom: -2px;
           }
         }
       }
@@ -239,13 +244,13 @@ export default defineComponent({
       align-items: center;
       height: 22px;
       color: #b3b6ba;
-      margin: 10px 0;
+      margin: 17px 0;
       .volume-input {
         position: relative;
         display: flex;
         flex-shrink: 0;
         flex-grow: 0;
-        width: 160px;
+        width: 180px;
         .blue-bg {
           z-index: 1;
           position: absolute;
@@ -257,7 +262,7 @@ export default defineComponent({
         }
         input[type="range"] {
           -webkit-appearance: none;
-          width: 160px;
+          width: 180px;
           height: 4px;
           border-radius: 10px; /*这个属性设置使填充进度条时的图形为圆角*/
           background-color: rgba(33, 30, 36, 1);
