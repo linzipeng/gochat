@@ -87,40 +87,38 @@
               class="resolution-label"
               :class="{
                 'is-active':
-                  $store.state.cameraConfig.videoQuality === 3 ||
-                  ($store.state.cameraConfig.width === 1280 &&
-                    $store.state.cameraConfig.height === 720),
+                  $store.state.cameraConfig.width === 1920 &&
+                  $store.state.cameraConfig.height === 1080,
               }"
               @click="changeVideoQuality(3)"
             >
-              1080p<br />
-              <div>极清</div>
+              <div class="number">1080p</div>
+              <div class="scale-66">极清</div>
             </div>
             <div
               class="resolution-label"
               :class="{
                 'is-active':
-                  $store.state.cameraConfig.videoQuality === 2 ||
-                  ($store.state.cameraConfig.width === 640 &&
-                    $store.state.cameraConfig.height === 480),
+                  ($store.state.cameraConfig.width === 1280 &&
+                    $store.state.cameraConfig.height === 720) ||
+                  $store.state.cameraConfig.videoQuality === 3,
               }"
               @click="changeVideoQuality(2)"
             >
-              720p<br />
-              <div>超清</div>
+              <div class="number">720p</div>
+              <div class="scale-66">超清</div>
             </div>
             <div
               class="resolution-label"
               :class="{
                 'is-active':
-                  $store.state.cameraConfig.videoQuality === 1 ||
-                  ($store.state.cameraConfig.width === 320 &&
-                    $store.state.cameraConfig.height === 240),
+                  $store.state.cameraConfig.width === 640 &&
+                  $store.state.cameraConfig.height === 360,
               }"
               @click="changeVideoQuality(1)"
             >
-              360p<br />
-              <div>标准</div>
+              <div class="number">360p</div>
+              <div class="scale-66">标准</div>
             </div>
           </div>
         </div>
@@ -139,22 +137,22 @@ import { checkDevices } from "@/service/room";
 
 const videoQualityType = {
   "1": {
-    width: 320,
-    height: 240,
-    frameRate: 15,
-    maxBitrate: 300,
-  },
-  "2": {
     width: 640,
-    height: 480,
+    height: 360,
     frameRate: 15,
     maxBitrate: 800,
   },
-  "3": {
+  "2": {
     width: 1280,
     height: 720,
     frameRate: 20,
     maxBitrate: 1500,
+  },
+  "3": {
+    width: 1920,
+    height: 1080,
+    frameRate: 25,
+    maxBitrate: 2000,
   },
 };
 
@@ -285,6 +283,7 @@ export default defineComponent({
       cameraConfig.height = videoQualityType[type].height;
       cameraConfig.frameRate = videoQualityType[type].frameRate;
       cameraConfig.bitrate = videoQualityType[type].maxBitrate;
+      cameraConfig.videoQuality = 4;
       store.commit("setter", {
         key: "cameraConfig",
         value: cameraConfig,
@@ -353,8 +352,9 @@ export default defineComponent({
     }
     .el-tabs {
       .el-tabs__nav-wrap {
-        padding-top: 21px;
+        padding-top: 26px;
         box-sizing: border-box;
+        width: 120px;
         &::after {
           width: 1px;
           background-color: rgba(255, 255, 255, 0.1);
@@ -363,18 +363,27 @@ export default defineComponent({
           text-align: left;
           color: #aca5b4;
           user-select: none;
-          height: 32px;
-          line-height: 32px;
-          margin-bottom: 8px;
+          height: 22px;
+          line-height: 22px;
+          padding-bottom: 18px;
+          box-sizing: content-box;
+          font-size: 12px;
           &.is-active {
             color: #e0dde3;
+            svg {
+              color: #e0dde3;
+            }
           }
           &:hover {
             color: #a653ff;
+            svg {
+              color: #a653ff;
+            }
           }
         }
         .el-tabs__active-bar {
           background-color: #a653ff;
+          height: 22px !important;
         }
         a {
           color: unset;
@@ -389,16 +398,17 @@ export default defineComponent({
       .media-label {
         font-weight: bold;
         color: #e0dde3;
-        height: 32px;
-        line-height: 32px;
-        margin-top: 21px;
-        margin-bottom: 5px;
+        height: 16px;
+        line-height: 16px;
+        margin-top: 24px;
+        margin-bottom: 14px;
       }
       .media-select-box {
         font-size: 15px;
         color: #82798f;
         transform: scale(0.66666);
         margin-left: -67px;
+        margin-top: 8px;
       }
       .resolution-select {
         display: flex;
@@ -414,12 +424,17 @@ export default defineComponent({
           &.is-active {
             color: #a653ff;
           }
-          div {
+          .number {
+            margin-top: 3px;
+            margin-bottom: -3px;
+          }
+          .scale-66 {
             transform: scale(0.666666);
           }
         }
       }
       .el-select {
+        margin-bottom: 0px;
         .el-input__inner {
           color: #e0dde3;
           text-overflow: ellipsis;

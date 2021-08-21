@@ -144,17 +144,20 @@ body {
 .el-select__popper {
   box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.3) !important;
   border-radius: 4px;
-  .el-select-dropdown__item {
-    padding: 0 10px;
-    height: 32px;
-    line-height: 32px;
-    font-size: 12px;
-    border-radius: 4px;
-    &:hover {
-      background: rgba(255, 255, 255, 0.05);
-    }
-    &.selected {
-      color: #9f76ff;
+  .el-select-dropdown__list {
+    margin: 8px 4px;
+    .el-select-dropdown__item {
+      padding: 0 6px;
+      height: 32px;
+      line-height: 32px;
+      font-size: 12px;
+      border-radius: 4px;
+      &:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      &.selected {
+        color: #9f76ff;
+      }
     }
   }
 }
@@ -233,6 +236,11 @@ body {
   width: 256px;
   margin-top: 0px;
   margin-bottom: 12px;
+  &:hover {
+    .el-input__inner {
+      border-color: rgba(166, 83, 255, 0.5) !important;
+    }
+  }
   .el-input {
     font-size: 12px;
     line-height: 28px;
@@ -245,7 +253,8 @@ body {
       background-color: #2c253c;
       border: 1px solid rgba(255, 255, 255, 0.1);
       &:focus {
-        border-color: rgba(166, 83, 255, 0.5);
+        border-color: #9F76FF;
+        background: rgba(255, 255, 255, 0.05);
       }
     }
     .el-select__caret {

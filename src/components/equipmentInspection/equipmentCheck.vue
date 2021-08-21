@@ -330,7 +330,7 @@ export default defineComponent({
         audioErrorMessage: stepsData.value[1].errorMessage,
         videoInput: stepsData.value[0].deviceId,
         audioInput: stepsData.value[1].deviceId,
-        videoQuality: 2,
+        videoQuality: 3,
         volume: stepsData.value[1].volume,
       };
       const speakerConfig = {

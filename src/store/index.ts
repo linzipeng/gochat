@@ -26,7 +26,7 @@ const initState: MainStore = {
     audioInput: "",
     video: true,
     audio: true,
-    videoQuality: 2,
+    videoQuality: 3,
     actualAudioMuted: false,
     actualVideoMuted: false,
     videoErrorMessage: "",

@@ -56,12 +56,10 @@
           v-model="chatArea"
         >
         </el-input>
-        <span
-          class="chat-enter"
-          v-loading="messageSendLoading"
-          @click="sendMessage"
-        >
-          <i :class="chatArea.length > 0 ? 'abled-btn' : 'disabled-btn'"></i>
+        <span class="chat-enter" @click="sendMessage">
+          <i
+            :class="chatArea.trim().length > 0 ? 'abled-btn' : 'disabled-btn'"
+          ></i>
         </span>
       </el-tab-pane>
       <el-tab-pane :label="`在线人数·${attendeeList?.length}`" name="online">
@@ -202,7 +200,7 @@ export default defineComponent({
     };
 
     const sendMessage = function () {
-      if (chatArea.value.length > 0) {
+      if (chatArea.value.trim().length > 0) {
         messageSendLoading.value = true;
         zg.sendBroadcastMessage(
           store.state.room.room_id,

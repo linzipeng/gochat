@@ -440,7 +440,7 @@ export default defineComponent({
   right: 10px;
   z-index: 101;
   width: 126px;
-  background: rgba(29, 20, 46, 0.7);
+  height: 140px;
   border-radius: 4px;
   font-size: 12px;
   color: #ffffff;
@@ -448,8 +448,32 @@ export default defineComponent({
   padding: 10px 16px 10px;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+  &::after {
+    content: " ";
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    filter: blur(10px);
+    top: 0;
+    left: 0;
+    background: rgba(29, 20, 46, 0.7);
+    z-index: 9;
+  }
   svg {
     align-self: flex-end;
+    width: 16px;
+    height: 16px;
+    margin-right: -10px;
+    margin-top: -4px;
+    z-index: 10;
+  }
+  p {
+    height: 20px;
+    line-height: 20px;
+    margin-top: 5px;
+    z-index: 10;
   }
 }
 .audience-video-container {
