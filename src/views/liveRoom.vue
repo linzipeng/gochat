@@ -1132,14 +1132,15 @@ export default defineComponent({
       }
       .operation {
         cursor: pointer;
-        font-size: 10px;
-        margin: 0 16px;
-        &:hover{
+        font-size: 12px;
+        margin: 0 13px;
+        text-align: center;
+        &:hover {
           svg {
-            color: #a653ff;
+            color: #966cfa;
           }
           div {
-            color: #a653ff;
+            color: #9F76FF;
           }
         }
         svg {
@@ -1148,7 +1149,7 @@ export default defineComponent({
           color: #aca5b4;
         }
         div {
-          transform: scale(0.8);
+          transform: scale(0.84);
           color: #82798f;
         }
       }
