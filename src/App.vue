@@ -179,6 +179,18 @@ body {
   }
 }
 
+.line-height-33 {
+  line-height: 33px;
+}
+
+.one-line {
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  margin-right: 14px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 .about-menu {
   background: #2c253c !important;
   .el-dropdown-menu__item {

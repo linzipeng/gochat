@@ -83,9 +83,9 @@
           </div>
           <div>
             <template v-if="person.uid === $store.state.user.uid">
-              我（自己）
+              我
             </template>
-            <template v-else-if="person.role === 3"> 主播 </template>
+            <span v-else-if="person.role === 3" class="anthor-tab"> 主播 </span>
             <span
               v-else-if="person.onstage_state === 2 && isAnchor"
               class="onstage"
@@ -308,32 +308,45 @@ export default defineComponent({
   width: 320px !important;
   box-sizing: border-box;
   background: #302045;
+  .anthor-tab {
+    width: 28px;
+    height: 14px;
+    background: #9F76FF;
+    border-radius: 2px;
+    line-height: 14px;
+    font-size: 10px;
+    padding: 0 4px;
+    color: #E0DDE3;
+  }
   .online-item {
     display: flex;
     justify-content: space-between;
-    padding: 12px 15px;
+    padding: 14px 16px;
     align-items: center;
-    font-size: 13px;
+    font-size: 12px;
     .user-name {
-      margin-left: 10px;
+      margin-left: 16px;
+      font-size: 14px;
     }
     .onstage {
       color: #a653ff;
     }
     .invite-btn {
-      border-radius: 45px;
-      height: 30px;
-      width: 80px;
+      border-radius: 15px;
+      height: 26px;
+      width: 70px;
       text-align: center;
-      line-height: 30px;
+      line-height: 26px;
+      box-sizing: border-box;
+      font-size: 12px;
     }
     .inviting {
-      color: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #82798F;
+      border: 1px solid #82798F;
     }
     .invite {
       cursor: pointer;
-      color: white;
+      color: #E0DDE3;
       background: linear-gradient(126deg, #a754ff 0%, #510df1 100%);
     }
   }
@@ -347,23 +360,26 @@ export default defineComponent({
     }
     .el-tabs__nav {
       width: 100%;
+      height: 56px;
+      line-height: 56px;
       .el-tabs__active-bar {
-        background-color: #a653ff;
+        background-color: #9F76FF;
         height: 3px;
       }
       .el-tabs__item {
         text-align: center;
         color: #aca5b4;
         width: 50%;
+        font-size: 16px;
       }
     }
     .el-tabs__content {
-      height: calc(100% - 40px);
+      height: calc(100% - 56px);
       #pane-online {
         overflow-y: scroll;
         height: 100%;
         &::-webkit-scrollbar {
-          background-color: #2d1e3b;
+          background-color: #302045;
         }
       }
     }
@@ -373,21 +389,10 @@ export default defineComponent({
         overflow-y: scroll;
         height: calc(100% - 160px);
         &::-webkit-scrollbar {
-          background-color: #2b1e3b;
+          background-color: #302045;
         }
         .whole-message {
           padding: 12px 16px;
-          .anthor-tab {
-            width: 28px;
-            height: 14px;
-            background: #6e5bff;
-            border-radius: 2px;
-            color: white;
-            height: 15px;
-            line-height: 15px;
-            font-size: 10px;
-            padding: 0 4px;
-          }
           .message-fromUser {
             font-size: 12px;
             line-height: 14px;
@@ -397,7 +402,7 @@ export default defineComponent({
           .message-content {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
-            padding: 5px 12px;
+            padding: 10px 12px;
             margin-top: 10px;
             font-size: 14px;
             line-height: 21px;

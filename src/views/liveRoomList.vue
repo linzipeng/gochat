@@ -87,9 +87,12 @@
               <div class="room-number">
                 <div>
                   <icon name="icon_people" class="room-person"></icon>
-                  <span>{{ room.online }}</span>
+                  <span style="vertical-align: middle;">{{ room.online }}</span>
                 </div>
-                <div class="goto-look">去观看 ></div>
+                <div class="goto-look">
+                  去观看
+                  <icon name="icon_into" style="width: 9px; height: 9px"></icon>
+                </div>
               </div>
             </div>
           </div>
@@ -241,14 +244,6 @@ export default defineComponent({
 </script>
 
 <style lang="less">
-.one-line {
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
-  margin-right: 14px;
-  height: 19px;
-  display: inline-block;
-  vertical-align: middle;
-}
-
 .icon-feedback {
   width: 1.572em;
   height: 1.572em;
@@ -376,8 +371,7 @@ export default defineComponent({
     background: #251735;
     .height-56 {
       height: 56px;
-      line-height: 56px;
-      padding-bottom: 2px;
+      line-height: 55px;
     }
     img {
       vertical-align: middle;
@@ -455,19 +449,18 @@ export default defineComponent({
           font-size: 16px;
           color: #e0dde3;
           height: 40px;
-          line-height: 40px;
+          line-height: 56px;
         }
         .room-number {
           display: flex;
           justify-content: space-between;
           height: 40px;
-          line-height: 40px;
+          line-height: 30px;
           font-size: 12px;
-          vertical-align: middle;
           .goto-look {
             width: 64px;
             height: 24px;
-            margin: 7px 0;
+            margin-bottom: 10px;
             text-align: center;
             color: #9f76ff;
             border-radius: 14px;

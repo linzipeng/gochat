@@ -18,7 +18,7 @@
           }}
         </span>
       </div>
-      <div>
+      <div class="line-height-33">
         <el-popover
           v-if="isAnchor"
           placement="bottom"
@@ -31,6 +31,7 @@
           <template #reference>
             <icon
               name="icon_data_normal"
+              class="margin-right-10"
               :isButton="true"
               @click="showStatus = !showStatus"
             ></icon>
@@ -50,11 +51,12 @@
               v-popover:media-popover
               name="a-icon_settingup"
               :isButton="true"
-              class="setting"
+              class="margin-right-10"
               @click="showMediaSetting = !showMediaSetting"
             ></icon>
           </template>
         </el-popover>
+        <span class="one-line"></span>
         <span
           class="room-operation"
           :class="isPlaying ? 'close-anchor' : 'zg-button start-anchor'"
@@ -1060,26 +1062,34 @@ export default defineComponent({
     justify-content: space-between;
     background: #302045;
     border-radius: 4px;
-    padding: 0 24px;
-    line-height: 56px;
+    padding: 10px 24px;
     .room-title {
       padding-left: 10px;
       font-size: 18px;
       font-family: MicrosoftYaHei-Bold, MicrosoftYaHei;
       font-weight: bold;
       color: #ccc;
+      vertical-align: middle;
     }
-    .setting {
-      margin: 0 14px;
+    .margin-right-10 {
+      margin-right: 10px;
+      width: 22px;
+      height: 22px;
     }
     .start-anchor {
+      display: inline-block;
       color: white;
-      padding: 4px 19px;
+      padding: 0px 19px;
+      height: 30px;
+      line-height: 30px;
     }
     .close-anchor {
       color: #ff4a50;
-      padding: 4px 19px;
+      display: inline-block;
+      padding: 0px 19px;
       background: rgba(255, 74, 80, 0.2);
+      height: 30px;
+      line-height: 30px;
       &:hover {
         opacity: 0.8;
       }
