@@ -49,10 +49,10 @@
           :rows="6"
           resize="none"
           :maxlength="30"
-          placeholder="说点什么呢..."
+          placeholder="说点什么吧..."
           @keydown.enter="sendMessage"
           @focus="(event) => placeholder(event.target, '')"
-          @blur="(event) => placeholder(event.target, '说点什么呢...')"
+          @blur="(event) => placeholder(event.target, '说点什么吧...')"
           v-model="chatArea"
         >
         </el-input>
