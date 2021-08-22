@@ -192,17 +192,12 @@ body {
 
 .about-menu {
   background: #2c253c !important;
-  padding: 6px 0 !important;
   .el-dropdown-menu__item {
     font-size: 12px;
     color: #e0dde3;
-    margin: 0 4px;
-    padding: 0 8px;
+    margin: 0 6px;
+    padding: 0 14px;
     border-radius: 4px;
-    height: 32px;
-    svg {
-      padding-right: 2px;
-    }
   }
   .el-dropdown-menu__item:hover {
     background-color: rgba(255, 255, 255, 0.05) !important;

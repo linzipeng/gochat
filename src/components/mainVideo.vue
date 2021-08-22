@@ -6,6 +6,8 @@
         class="anchor-operate-audience"
         trigger="click"
         @command="(value) => $emit('handleCommand', value, streamId)"
+        @visible-change="(val) => (showIconHandle = val)"
+        :style="showIconHandle && { display: 'inline-block', 'z-index': 100 }"
       >
         <icon name="icon_handle" class="handle"></icon>
         <template v-slot:dropdown>
@@ -136,6 +138,7 @@ export default defineComponent({
     const video = ref<HTMLVideoElement | null>(null);
     const speakerAudio = ref<HTMLAudioElement | null>(null);
     const { params: routeParams } = useRoute();
+    const showIconHandle = ref(false);
 
     const qualityState = ref({
       frames: "0p",
@@ -348,7 +351,7 @@ export default defineComponent({
           setRoomStream(
             store.state.user.uid,
             store.state.room.room_id,
-            streamId.value as string,
+            streamId.value as string
           );
           if (store.state.cameraConfig.actualVideoMuted) {
             setStatus({
@@ -400,6 +403,7 @@ export default defineComponent({
       video,
       qualityState,
       speakerAudio,
+      showIconHandle,
       startPublishingStream,
     };
   },
@@ -494,7 +498,7 @@ export default defineComponent({
     position: absolute;
     right: 8px;
     top: 8px;
-    display: none;
+    z-index: -100;
     .handle {
       width: 22px;
       height: 16px;
@@ -506,6 +510,18 @@ export default defineComponent({
     }
     .operator-positon {
       width: 80px;
+      padding: 6px 0 !important;
+      .el-dropdown-menu__item {
+        font-size: 12px;
+        color: #e0dde3;
+        margin: 0 4px;
+        padding: 0 8px;
+        border-radius: 4px;
+        height: 32px;
+        svg {
+          padding-right: 2px;
+        }
+      }
     }
   }
   .attendee-name {

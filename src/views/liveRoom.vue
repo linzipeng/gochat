@@ -474,7 +474,6 @@ export default defineComponent({
                    * 6.拒绝邀请连麦
                    * 7.因为台上人数满上台失败
                    */
-                  debugger;
                   data.users.forEach((attendee: User) => {
                     if (attendee.uid === store.state.user.uid) {
                       // 主播操作的信息
