@@ -39,7 +39,19 @@
                   >主播</span
                 >
               </p>
-              <div class="message-content">{{ message.message }}</div>
+              <div class="message-content">
+                <icon
+                  v-if="message.isloading"
+                  name="icon_loading"
+                  class="loading-icon"
+                ></icon>
+                <icon
+                  v-else-if="message.isError"
+                  name="con_fail"
+                  class="error-icon"
+                ></icon>
+                {{ message.message }}
+              </div>
             </div>
           </template>
         </div>
@@ -62,9 +74,6 @@
           @click="sendMessage"
         >
           <icon name="icon_send"></icon>
-          <!-- <i
-            :class="chatArea.trim().length > 0 ? 'abled-btn' : 'disabled-btn'"
-          ></i> -->
         </span>
       </el-tab-pane>
       <el-tab-pane :label="`在线人数·${attendeeList?.length}`" name="online">
@@ -121,8 +130,9 @@
 
 <script lang="ts">
 import {
-  computed,
+  ComponentInternalInstance,
   defineComponent,
+  getCurrentInstance,
   nextTick,
   onBeforeUnmount,
   PropType,
@@ -143,6 +153,11 @@ interface enterOrOutRoom {
   userName: string;
 }
 
+interface MessageInfo extends ZegoBroadcastMessageInfo {
+  isloading?: boolean;
+  isError?: boolean;
+}
+
 export default defineComponent({
   props: {
     audienceStreamId: {
@@ -161,12 +176,18 @@ export default defineComponent({
     inviteList: {
       type: Object as PropType<Array<number>>,
     },
+    isAnchor: {
+      type: Boolean,
+    },
+    isPlaying: {
+      type: Boolean,
+    },
   },
   setup(props, rtx) {
-    const { audienceStreamId } = toRefs(props);
+    const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+    const { audienceStreamId, isAnchor, isPlaying } = toRefs(props);
     const store = useStore<MainStore>();
     const chatArea = ref("");
-    const messageSendLoading = ref(false);
     const activeName = ref("MI");
     const messageList = ref([
       {
@@ -175,12 +196,7 @@ export default defineComponent({
         userID: store.state.user.uid.toString(),
         userName: "我",
       },
-    ] as Array<ZegoBroadcastMessageInfo | enterOrOutRoom>);
-
-    const isAnchor = computed(() => {
-      // 是否为主播本人
-      return store.state.room?.host_id === store.state.user?.uid;
-    });
+    ] as Array<MessageInfo | enterOrOutRoom>);
 
     const invite = function (uid: number) {
       if (audienceStreamId.value.length < 3) {
@@ -210,29 +226,40 @@ export default defineComponent({
 
     const sendMessage = function () {
       if (chatArea.value.trim().length > 0) {
-        messageSendLoading.value = true;
-        zg.sendBroadcastMessage(
-          store.state.room.room_id,
-          JSON.stringify({ cmd: 10001, message: chatArea.value })
-        )
-          .then(({ errorCode }) => {
-            if (errorCode === 0) {
-              messageList.value.push({
-                fromUser: {
-                  userID: store.state.user.uid.toString(),
-                  userName: store.state.user.nick_name,
-                },
-                message: chatArea.value,
-                messageID: messageList.value.length,
-                sendTime: Date.now(),
-              });
-              chatArea.value = "";
-              chatBoxGotoBottom();
-            }
-          })
-          .finally(() => {
-            messageSendLoading.value = false;
-          });
+        const message: MessageInfo = {
+          fromUser: {
+            userID: store.state.user.uid.toString(),
+            userName: store.state.user.nick_name,
+          },
+          isloading: isPlaying.value,
+          isError: false,
+          message: chatArea.value,
+          messageID: messageList.value.length,
+          sendTime: Date.now(),
+        };
+        messageList.value.push(message);
+        chatArea.value = "";
+        chatBoxGotoBottom();
+        if (isPlaying.value) {
+          zg.sendBroadcastMessage(
+            store.state.room.room_id,
+            JSON.stringify({ cmd: 10001, message: chatArea.value })
+          )
+            .then(({ errorCode }) => {
+              if (errorCode !== 0) {
+                message.isError = true;
+              }
+            })
+            .catch(() => {
+              message.isError = true;
+            })
+            .finally(() => {
+              message.isloading = false;
+              if (proxy) {
+                proxy.$forceUpdate();
+              }
+            });
+        }
       }
     };
 
@@ -299,8 +326,6 @@ export default defineComponent({
       chatArea,
       activeName,
       messageList,
-      messageSendLoading,
-      isAnchor,
       invite,
       sendMessage,
       placeholder,
@@ -375,6 +400,12 @@ export default defineComponent({
         color: #aca5b4;
         width: 50%;
         font-size: 16px;
+        &:nth-child(2) {
+          padding: 0 60px !important;
+        }
+        &:nth-child(3) {
+          padding: 0 35px !important;
+        }
       }
     }
     .el-tabs__content {
@@ -413,6 +444,31 @@ export default defineComponent({
             display: inline-block;
             max-width: 266px;
             box-sizing: border-box;
+            position: relative;
+            .loading-icon {
+              @keyframes loading {
+                0% {
+                  transform: rotate(0deg);
+                }
+                100% {
+                  transform: rotate(-360deg);
+                }
+              }
+              transform-origin: center center;
+              animation: loading 1s infinite linear;
+              width: 15px;
+              height: 15px;
+              position: absolute;
+              left: -20px;
+              margin-top: 3px;
+            }
+            .error-icon {
+              width: 15px;
+              height: 15px;
+              position: absolute;
+              left: -20px;
+              margin-top: 3px;
+            }
           }
         }
         .whole-traffic {

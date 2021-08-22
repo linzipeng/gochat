@@ -18,6 +18,7 @@ const livingCheck = function ({
   maxSecond = 6,
 }: livingParams): number {
   let failureTimes = 0;
+  let isShowNetworkErrorBox = false;
 
   const request = function () {
     return new Promise<void>((resolve, reject) => {
@@ -41,7 +42,7 @@ const livingCheck = function ({
 
   const handler = setInterval(() => {
     request().catch(() => {
-      if (failureTimes >= maxSecond) {
+      if (failureTimes === maxSecond) {
         ElMessageBox.confirm("网络连接失败，请检查网络后重试", "网络异常", {
           confirmButtonText: "重试",
           cancelButtonText: "退出",
@@ -57,13 +58,16 @@ const livingCheck = function ({
           .catch(() => {
             router.push({ path: "/" });
           });
-      } else {
+      } else if (failureTimes < maxSecond && !isShowNetworkErrorBox) {
+        isShowNetworkErrorBox = true;
         ElMessageBox.alert("网络异常，请检查网络后重试", "网络异常", {
           confirmButtonText: "确定",
           customClass: "message-box",
           confirmButtonClass: "zg-button small-button border-radius-5 ",
           center: true,
           showClose: false,
+        }).then(() => {
+          isShowNetworkErrorBox = false;
         });
       }
     });

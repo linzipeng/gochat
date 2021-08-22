@@ -186,6 +186,8 @@
         @connected="connectedAnthor"
         :inviteList="inviteList"
         @updateInviteList="updateInviteList"
+        :isAnchor="isAnchor"
+        :isPlaying="isPlaying"
       ></chat-box>
     </el-container>
     <media-setting

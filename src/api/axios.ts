@@ -1,6 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import { ElMessage } from "element-plus";
-import { MessageParams } from "element-plus/lib/el-message/src/types";
+import { ElMessageBox } from "element-plus";
 import router from "@/router/index";
 import { _RouteRecordBase } from "vue-router";
 import { apiError } from "./apiError";
@@ -9,7 +8,7 @@ const REQ_SUCCESS = 0;
 let NET_ERROR = false; // 是否展示网络错误
 
 const config = {
-  timeout: 30 * 1000,
+  timeout: 10 * 1000,
   baseURL: "https://demo-server-sh.zego.im/alpha",
 };
 
@@ -66,10 +65,13 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error.message);
     }
     if (!error.response && !NET_ERROR) {
-      ElMessage({
-        customClass: "alert-box",
-        title: "网络异常，请稍后再试",
-      } as MessageParams);
+      ElMessageBox.alert("网络异常，请检查网络后重试", "网络异常", {
+        confirmButtonText: "确定",
+        customClass: "message-box",
+        confirmButtonClass: "zg-button small-button border-radius-5 ",
+        center: true,
+        showClose: false,
+      });
       NET_ERROR = true;
     }
     return Promise.reject();
