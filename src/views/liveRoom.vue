@@ -329,9 +329,7 @@ export default defineComponent({
       // 是否为主播本人
       return (
         store.state.room?.host_id.toString() ===
-          store.state.user?.uid.toString() ||
-        streamIdList.value.length === 0 ||
-        routeParams.roomId === "100000"
+          store.state.user?.uid.toString() || routeParams.roomId === "100000"
       );
     });
 
