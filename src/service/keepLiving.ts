@@ -59,7 +59,7 @@ const livingCheck = function ({
           });
       } else if (failureTimes < maxSecond) {
         ElMessage({
-          customClass: "alert-box",
+          customClass: "alert-box alert-box-40",
           message: `网络异常，请检查网络后重试`,
         });
       }

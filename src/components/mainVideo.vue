@@ -75,6 +75,16 @@
       />
       <span class="mute-anthor-text" v-else>主播已关闭摄像头</span>
     </template>
+    <div
+      v-else-if="
+        (streamExtraInfo && streamExtraInfo.video === false) ||
+        (streamId === $store.state.user.uid.toString() && !$store.state.cameraConfig.video)
+      "
+      class="error-video"
+    >
+      <icon name="a-img_devicefault"></icon><br />
+      <span>视频画面异常</span>
+    </div>
     <audio
       ref="speakerAudio"
       v-if="isAnchor && isAnchorVideo"
@@ -130,6 +140,9 @@ export default defineComponent({
       default: () => {
         return true;
       },
+    },
+    streamExtraInfo: {
+      type: Object,
     },
   },
   setup(props, ctx) {
@@ -345,6 +358,9 @@ export default defineComponent({
           localStream as MediaStream,
           {
             videoCodec: "VP8",
+            extraInfo: JSON.stringify({
+              video: store.state.cameraConfig.video,
+            }),
           }
         );
         if (isSuccess) {
@@ -562,5 +578,24 @@ export default defineComponent({
   bottom: 0;
   position: absolute;
   border-radius: 4px;
+}
+.error-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  svg {
+    width: 60px;
+    height: 60px;
+    color: #776e83;
+  }
+  span {
+    font-size: 16px;
+    font-weight: bold;
+    color: #82798F;
+    line-height: 21px;
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+  }
 }
 </style>

@@ -27,7 +27,7 @@
           :show-arrow="false"
           :offset="12"
           content="实时数据"
-        > 
+        >
           <template #reference>
             <icon
               name="icon_data_normal"
@@ -93,6 +93,7 @@
             "
             :showStatus="showStatus"
             @closeStatus="showStatus = false"
+            :streamExtraInfo="streamExtraInfo.get(anchorStreamId)"
           ></main-video>
           <div class="audience-box" v-if="audienceStreamId.length > 0">
             <main-video
@@ -107,6 +108,7 @@
                 (value, streamId) => handleCommand(value, streamId)
               "
               :picIndex="attendeeMap.get(streamId)?.avatar"
+              :streamExtraInfo="streamExtraInfo.get(streamId)"
             ></main-video>
           </div>
         </div>
@@ -280,21 +282,7 @@ export default defineComponent({
         });
       }
     });
-    // 主播信息
-    // const anthor = computed(() => {
-    //   for (const attendee of attendeeList.value) {
-    //     if (attendee.role === 3) {
-    //       return attendee;
-    //     }
-    //   }
-    //   return {};
-    // });
-    // 观众信息
-    // const andience = computed(() => {
-    //   return attendeeList.value.filter((attendee) => {
-    //     return attendee.role !== 3;
-    //   });
-    // });
+    const streamExtraInfo = new Map<string, unknown>();
     // 房间人员映射表
     const attendeeMap = computed(() => {
       const map = new Map<string, User>();
@@ -374,7 +362,10 @@ export default defineComponent({
         });
         return false;
       }
-      const microphoneMessage = await checkDevices({ video: false, audio: true });
+      const microphoneMessage = await checkDevices({
+        video: false,
+        audio: true,
+      });
       if (microphoneMessage) {
         ElMessage({
           customClass: "alert-box",
@@ -691,12 +682,21 @@ export default defineComponent({
             streamList.forEach((stream) => {
               if (streamIdList.value.indexOf(stream.streamID) === -1) {
                 streamIdList.value.push(stream.streamID);
+                if (stream.extraInfo) {
+                  streamExtraInfo.set(
+                    stream.streamID,
+                    JSON.parse(stream.extraInfo)
+                  );
+                }
               }
             });
           } else {
             streamList.forEach((stream) => {
               if (stream.user.userID !== store.state.user.uid.toString()) {
                 zg.stopPlayingStream(stream.streamID);
+                if (streamExtraInfo.has(stream.streamID)) {
+                  streamExtraInfo.delete(stream.streamID);
+                }
                 if (store.state.room.stream_id === stream.streamID) {
                   keepLiving.stop();
                   ElMessageBox.alert("主播已结束直播", {
@@ -1030,6 +1030,7 @@ export default defineComponent({
       showEquipmentCheck,
       anthorVideo,
       inviteList,
+      streamExtraInfo,
       updateInviteList,
       updateMedia,
       updateAttendee,
@@ -1150,7 +1151,7 @@ export default defineComponent({
             color: #966cfa;
           }
           div {
-            color: #9F76FF;
+            color: #9f76ff;
           }
         }
         svg {

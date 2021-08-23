@@ -338,4 +338,8 @@ body {
     display: none;
   }
 }
+
+.alert-box-40 {
+  top: calc(50% - 40px) !important;
+}
 </style>
