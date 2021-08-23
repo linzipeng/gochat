@@ -1,6 +1,6 @@
 <template>
   <div :class="{ 'audience-video-container': !isAnchorVideo }">
-    <template v-if="!isAnchorVideo && isAnchor">
+    <template v-if="!isAnchorVideo">
       <el-dropdown
         v-if="isAnchor"
         class="anchor-operate-audience"
