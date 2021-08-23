@@ -365,12 +365,12 @@ export default defineComponent({
       }
     };
 
-    const check = async function () {
+    const check = async function (invite = true) {
       const cameraMessage = await checkDevices({ video: true, audio: false });
       if (cameraMessage) {
         ElMessage({
           customClass: "alert-box",
-          message: `申请失败，${cameraMessage}`,
+          message: `${invite ? "连麦" : "申请"}失败，${cameraMessage}`,
         });
         return false;
       }
@@ -378,7 +378,7 @@ export default defineComponent({
       if (microphoneMessage) {
         ElMessage({
           customClass: "alert-box",
-          message: `申请失败，${microphoneMessage}`,
+          message: `${invite ? "连麦" : "申请"}失败，${microphoneMessage}`,
         });
         return false;
       }
@@ -390,7 +390,7 @@ export default defineComponent({
       targetUid: number
     ) {
       if (action === 1) {
-        if (!(await check())) return;
+        if (!(await check(false))) return;
         if (audienceStreamId.value.length > 2) {
           ElMessage({
             customClass: "alert-box",
