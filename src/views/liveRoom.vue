@@ -625,10 +625,10 @@ export default defineComponent({
                         data.uid,
                         roomID,
                         3
-                      ).catch(() => {
+                      ).catch((err) => {
                         ElMessage({
                           customClass: "alert-box",
-                          message: "最多支持3名观众连麦",
+                          message: err || "最多支持3名观众连麦",
                         });
                       });
                     } else {

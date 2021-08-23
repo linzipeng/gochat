@@ -8,25 +8,7 @@ declare module "@vue/runtime-core" {
 
 declare global {
   type Ret = {
-    code:
-      | 0
-      | 80000
-      | 80001
-      | 80002
-      | 80003
-      | 80004
-      | 80005
-      | 80006
-      | 80007
-      | 80008
-      | 80009
-      | 80010
-      | 80011
-      | 80012
-      | 80013
-      | 80014
-      | 100000
-      | 100001;
+    code: number;
     message?: string;
   };
   type RSP = {

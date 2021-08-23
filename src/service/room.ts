@@ -191,7 +191,11 @@ export const onstageRequestAction = function (
         if (ret.code === 0) {
           resolve();
         } else {
-          reject();
+          let message = "";
+          if (ret.code === 80018) {
+            message = "用户没有申请连麦或者被邀请连麦";
+          }
+          reject(message);
         }
       })
       .catch(() => {
