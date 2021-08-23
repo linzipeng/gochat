@@ -235,7 +235,7 @@ export const onstageInviteAction = function (
         } else if (action === 4) {
           actionMess = "拒绝邀请";
         }
-        reject(actionMess + "连麦失败，请重试");
+        reject(actionMess + "失败，请重试");
       });
   });
 };
