@@ -314,7 +314,6 @@ body {
 .message-cancel-btn {
   border: none !important;
   background: rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0px 6px 10px 0px rgba(0, 0, 0, 0.3) !important;
   color: #e0dde3 !important;
   &:hover {
     background: rgba(255, 255, 255, 0.15) !important;
