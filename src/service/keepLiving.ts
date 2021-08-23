@@ -1,5 +1,5 @@
 import { api } from "@/api/api";
-import { ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import router from "@/router";
 
 interface livingParams {
@@ -18,7 +18,6 @@ const livingCheck = function ({
   maxSecond = 6,
 }: livingParams): number {
   let failureTimes = 0;
-  let isShowNetworkErrorBox = false;
 
   const request = function () {
     return new Promise<void>((resolve, reject) => {
@@ -58,16 +57,10 @@ const livingCheck = function ({
           .catch(() => {
             router.push({ path: "/" });
           });
-      } else if (failureTimes < maxSecond && !isShowNetworkErrorBox) {
-        isShowNetworkErrorBox = true;
-        ElMessageBox.alert("网络异常，请检查网络后重试", "网络异常", {
-          confirmButtonText: "确定",
-          customClass: "message-box",
-          confirmButtonClass: "zg-button small-button border-radius-5 ",
-          center: true,
-          showClose: false,
-        }).then(() => {
-          isShowNetworkErrorBox = false;
+      } else if (failureTimes < maxSecond) {
+        ElMessage({
+          customClass: "alert-box",
+          message: `网络异常，请检查网络后重试`,
         });
       }
     });

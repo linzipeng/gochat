@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import { ElMessageBox } from "element-plus";
+import { ElMessage } from "element-plus";
 import router from "@/router/index";
 import { _RouteRecordBase } from "vue-router";
 import { apiError } from "./apiError";
@@ -65,12 +65,9 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error.message);
     }
     if (!error.response && !NET_ERROR) {
-      ElMessageBox.alert("网络异常，请检查网络后重试", "网络异常", {
-        confirmButtonText: "确定",
-        customClass: "message-box",
-        confirmButtonClass: "zg-button small-button border-radius-5 ",
-        center: true,
-        showClose: false,
+      ElMessage({
+        customClass: "alert-box",
+        message: `网络异常，请检查网络后重试`,
       });
       NET_ERROR = true;
     }

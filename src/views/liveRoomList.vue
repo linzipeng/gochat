@@ -44,11 +44,13 @@
               <el-dropdown-item command="aboutUs">关于我们</el-dropdown-item>
               <el-dropdown-item divided class="nothing"
                 >应用版本
-                <span style="float: right; color: #82798F;">v1.0.0</span></el-dropdown-item
+                <span style="float: right; color: #82798f"
+                  >v1.0.0</span
+                ></el-dropdown-item
               >
               <el-dropdown-item class="nothing"
                 >SDK版本
-                <span style="float: right; color: #82798F;"
+                <span style="float: right; color: #82798f"
                   >v{{ getVersion() }}</span
                 ></el-dropdown-item
               >
@@ -87,7 +89,7 @@
               <div class="room-number">
                 <div>
                   <icon name="icon_people" class="room-person"></icon>
-                  <span style="vertical-align: middle;">{{ room.online }}</span>
+                  <span style="vertical-align: middle">{{ room.online }}</span>
                 </div>
                 <div class="goto-look">
                   去观看
@@ -108,7 +110,7 @@ import { MainStore } from "@/store/store";
 import { defineComponent, ref, onBeforeUnmount, onBeforeMount } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
-import { ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { getRoomList } from "@/service/room";
 import { getVersion } from "@/service/SDKServer";
 import icon from "@/components/icon.vue";
@@ -183,22 +185,6 @@ export default defineComponent({
       } else {
         router.push({ path: `/liveRoom/${room.room_id}` });
       }
-      // if (store.state.user.uid) {
-      //   if (store.state.token) {
-      //   } else {
-      //     ElMessage({
-      //       showClose: false,
-      //       customClass: "alert-box",
-      //       message: "用户账号token异常！稍后重试！",
-      //     });
-      //   }
-      // } else {
-      //   ElMessage({
-      //     showClose: false,
-      //     message: "用户尚未登录",
-      //     customClass: "alert-box",
-      //   });
-      // }
     };
 
     const clearInterval = function () {
@@ -225,9 +211,16 @@ export default defineComponent({
     onBeforeMount(() => {
       clearInterval();
       const updateRoomList = () => {
-        getRoomList().then((data) => {
-          roomList.value = data;
-        });
+        getRoomList()
+          .then((data) => {
+            roomList.value = data;
+          })
+          .catch(() => {
+            ElMessage({
+              customClass: "alert-box",
+              message: `网络异常，请检查网络后重试`,
+            });
+          });
       };
       updateRoomList();
       interval = window.setInterval(updateRoomList, 2000);
@@ -307,7 +300,7 @@ export default defineComponent({
     height: 18px;
     border-bottom: 1px solid rgba(121, 120, 125, 0.19);
     .el-message-box__close {
-      color: #D8D8D8;
+      color: #d8d8d8;
       font-size: 18px;
       &:hover {
         color: #9f76ff !important;
@@ -400,7 +393,7 @@ export default defineComponent({
       left: 0;
       right: 0;
       font-size: 18px;
-      color: #ACA5B4;
+      color: #aca5b4;
     }
     .room-cards {
       width: 1200px;
