@@ -243,7 +243,7 @@ export default defineComponent({
         if (isPlaying.value) {
           zg.sendBroadcastMessage(
             store.state.room.room_id,
-            JSON.stringify({ cmd: 10001, message: chatArea.value })
+            JSON.stringify({ cmd: 10001, message: message.message })
           )
             .then(({ errorCode }) => {
               if (errorCode !== 0) {
