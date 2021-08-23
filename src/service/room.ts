@@ -225,7 +225,17 @@ export const onstageInviteAction = function (
         }
       })
       .catch(() => {
-        reject();
+        let actionMess = "";
+        if (action === 1) {
+          actionMess = "邀请";
+        } else if (action === 2) {
+          actionMess = "取消邀请";
+        } else if (action === 3) {
+          actionMess = "接受邀请";
+        } else if (action === 4) {
+          actionMess = "拒绝邀请";
+        }
+        reject(actionMess + "连麦失败，请重试");
       });
   });
 };
