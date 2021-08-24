@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "precache-manifest.987a08f0fa80fe9a46859745af4407e0.js"
+  "precache-manifest.b174baedf3c8451335f8ccc283f66e4a.js"
 );
 
 workbox.core.setCacheNameDetails({prefix: "go-enjoy"});
