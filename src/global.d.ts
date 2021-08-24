@@ -33,6 +33,7 @@ declare global {
     mic?: 1 | 2; // 1：关闭  2:打开
     camera?: 1 | 2; // 1：关闭  2:打开
     onstage_state?: 1 | 2 | 3; // 1 未连麦 2 连麦 3 被邀请连麦
+    onstage_timestamp: number;
   };
   interface Attendee {
     room_id: string;

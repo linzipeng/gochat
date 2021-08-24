@@ -174,13 +174,13 @@ export default defineComponent({
         video.value.srcObject = localStream;
         video.value.onloadeddata = function () {
           console.log("載入完畢！");
-          const handler = setInterval(() => {
+          const handler = setTimeout(() => {
             if (video.value) {
               video.value.play().then(() => {
-                clearInterval(handler);
+                clearTimeout(handler);
               });
             }
-          }, 200);
+          }, 1500);
         };
       }
     };

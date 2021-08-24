@@ -155,8 +155,7 @@
             v-if="isAnchor && !showEquipmentCheck"
             @click="updateMedia('music')"
           >
-            <icon name="icon_music"></icon
-            ><br />
+            <icon name="icon_music"></icon><br />
             <div>背景音</div>
           </div>
           <template v-if="!isAnchor">
@@ -277,9 +276,15 @@ export default defineComponent({
       if (streamIdList.value.length < 2) {
         return [];
       } else {
-        return streamIdList.value.filter((streamId) => {
-          return streamId !== store.state.room.host_id.toString();
-        });
+        return streamIdList.value
+          .filter((streamId) => {
+            return streamId !== store.state.room.host_id.toString();
+          })
+          .sort((a, b) => {
+            const A = attendeeMap.value.get(a.toString()) as User;
+            const B = attendeeMap.value.get(b.toString()) as User;
+            return A.onstage_timestamp - B.onstage_timestamp;
+          });
       }
     });
     const streamExtraInfo = new Map<string, unknown>();
@@ -1108,7 +1113,7 @@ export default defineComponent({
       margin-right: 5px;
       width: 16px;
       height: 15px;
-      color: #E0DDE3;
+      color: #e0dde3;
     }
   }
 

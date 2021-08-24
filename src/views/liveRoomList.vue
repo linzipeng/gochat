@@ -338,6 +338,15 @@ export default defineComponent({
   .el-message-box__content {
     padding: 0;
   }
+  input {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+  .invalid > input {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    &:focus {
+      border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+  }
   .el-message-box__errormsg {
     display: none;
   }
