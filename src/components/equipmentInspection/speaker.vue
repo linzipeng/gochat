@@ -164,7 +164,7 @@ export default defineComponent({
         script = ac.createScriptProcessor(4096, 1, 1); //创建一个音频分析对象，采样的缓冲区大小为4096，输入和输出都是单声道
         mic.connect(script); //将该分析对象与麦克风音频进行连接
         script.connect(ac.destination); // 此举没有任何效果，仅仅是因为解决 Chrome 自身的 bug
-        script.onaudioprocess = (e): void => {
+        script.onaudioprocess = (e: any): void => {
           //开始处理音频
           const buffer = e.inputBuffer.getChannelData(0); //获得缓冲区的输入音频，转换为包含了PCM通道数据的32位浮点数组
           //创建变量并迭代来获取最大的音量值
