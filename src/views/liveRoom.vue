@@ -853,7 +853,7 @@ export default defineComponent({
               ElMessage({
                 showClose: false,
                 customClass: "alert-box",
-                message: "创建失败，请重试",
+                message: "开播失败，请重试",
               });
             })
             .finally(() => {

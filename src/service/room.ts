@@ -13,7 +13,7 @@ export const createRoom = function (
     ElMessage({
       showClose: false,
       customClass: "alert-box",
-      message: message || "创建失败，请重试",
+      message: message || "开播失败，请重试",
     });
   };
   return new Promise((resolve, reject) => {
