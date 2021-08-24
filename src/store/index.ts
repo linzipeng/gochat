@@ -11,6 +11,7 @@ const initState: MainStore = {
     mic: 1,
     camera: 1,
     onstage_state: 1,
+    onstage_timestamp: 0,
   },
   room: {
     room_id: "",

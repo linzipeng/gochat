@@ -283,7 +283,8 @@ export default defineComponent({
           .sort((a, b) => {
             const A = attendeeMap.value.get(a.toString()) as User;
             const B = attendeeMap.value.get(b.toString()) as User;
-            return A.onstage_timestamp - B.onstage_timestamp;
+            return ((A.onstage_timestamp as number) -
+              (B.onstage_timestamp as number)) ;
           });
       }
     });
