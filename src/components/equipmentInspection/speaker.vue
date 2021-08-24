@@ -74,7 +74,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onBeforeUnmount, onMounted, ref } from "vue";
+import {
+  defineComponent,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from "vue";
 import { zg } from "@/service/SDKServer";
 import { MainStore } from "@/store/store";
 import { useStore } from "vuex";
@@ -124,14 +130,58 @@ export default defineComponent({
             currentDevice.value.deviceID
           );
         }
-        speakerAudio.value.play();
+        speakerAudio.value.play().then(() => {
+          // 开启音浪回调
+          nextTick(() => {
+            if (speakerAudio.value) {
+              zg.createStream({
+                custom: {
+                  source: speakerAudio.value,
+                }
+              }).then((stream) => {
+                startSoundLevel(stream);
+              });
+            }
+          });
+        });
       }
+    };
 
-      // 开启音浪回调
-      zg.setSoundLevelDelegate(true, 100);
-      zg.on("capturedSoundLevelUpdate", (num) => {
-        speakerRealVolume.value = Math.round((num / 100) * volumeLength);
-      });
+    let script: any = null;
+    let mic: any = null;
+    let ac: any = null;
+
+    const stopSoundLevel = function () {
+      script && script.disconnect();
+      mic && mic.disconnect();
+    };
+
+    const startSoundLevel = function (localStream: MediaStream) {
+      stopSoundLevel();
+      ac = new AudioContext();
+      try {
+        mic = ac.createMediaStreamSource(localStream);
+        script = ac.createScriptProcessor(4096, 1, 1); //创建一个音频分析对象，采样的缓冲区大小为4096，输入和输出都是单声道
+        mic.connect(script); //将该分析对象与麦克风音频进行连接
+        script.connect(ac.destination); // 此举没有任何效果，仅仅是因为解决 Chrome 自身的 bug
+        script.onaudioprocess = (e): void => {
+          //开始处理音频
+          const buffer = e.inputBuffer.getChannelData(0); //获得缓冲区的输入音频，转换为包含了PCM通道数据的32位浮点数组
+          //创建变量并迭代来获取最大的音量值
+          let maxVal = 0;
+          for (let i = 0; i < buffer.length; i++) {
+            if (maxVal < buffer[i]) {
+              maxVal = buffer[i];
+            }
+          }
+          speakerRealVolume.value = Math.round(
+            ((maxVal * 100) / 100) * volumeLength
+          );
+        };
+        ac.resume();
+      } catch (err) {
+        console.error(" get sound level failed " + err);
+      }
     };
 
     const check = async function () {
