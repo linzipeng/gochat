@@ -544,11 +544,11 @@ export default defineComponent({
             margin-right: 16px;
             background-color: rgba(255, 255, 255, 0.1);
             &:hover {
-              background-color: #464a4d;
+              background-color: rgba(255, 255, 255, 0.15);
               color: #f5faff;
             }
             &:active {
-              background-color: #4f5357;
+              background-color: rgba(255, 255, 255, 0.05);
               color: #f5faff;
             }
           }
