@@ -15,7 +15,8 @@
               class="whole-message"
               :style="{
                 'text-align':
-                  message?.fromUser.userID == $store.state.user.uid
+                  message?.fromUser.userID == $store.state.user.uid ||
+                  message?.isNotPlaying
                     ? 'right'
                     : 'left',
               }"
@@ -24,7 +25,7 @@
                 <span
                   v-if="
                     message?.fromUser.userID == $store.state.room.host_id &&
-                    message?.fromUser.userID == $store.state.user.uid
+                    message?.fromUser.userID == $store.state.user.uid || message?.isNotPlaying
                   "
                   class="anthor-tab"
                   >主播</span
@@ -156,6 +157,7 @@ interface enterOrOutRoom {
 interface MessageInfo extends ZegoBroadcastMessageInfo {
   isloading?: boolean;
   isError?: boolean;
+  isNotPlaying?: boolean;
 }
 
 export default defineComponent({
@@ -236,9 +238,12 @@ export default defineComponent({
           message: chatArea.value,
           messageID: messageList.value.length,
           sendTime: Date.now(),
+          isNotPlaying: !isPlaying.value,
         };
         messageList.value.push(message);
-        chatArea.value = "";
+        setTimeout(() => {
+          chatArea.value = "";
+        }, 200);
         chatBoxGotoBottom();
         if (isPlaying.value) {
           zg.sendBroadcastMessage(
