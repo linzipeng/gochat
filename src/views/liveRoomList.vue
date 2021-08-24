@@ -462,7 +462,6 @@ export default defineComponent({
       grid-template-columns: 276px 276px 276px 276px;
       grid-template-rows: 260px;
       grid-gap: 32px;
-      flex: 1;
     }
     align-self: center;
     .playing-tag {
