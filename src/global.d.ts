@@ -46,6 +46,6 @@ declare global {
     raise_hand: 1 | 2; //1: 没举手， 2：已举手
     raise_hand_timestamp: number;
     onstage_state: 1 | 2; //1:不在台上  2：在台上
-    onstage_timestamp: number;
+    onstage_timestamp?: number;
   }
 }
