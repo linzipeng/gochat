@@ -176,8 +176,8 @@ export default defineComponent({
     align-items: center;
     border-bottom: 1px solid rgba(121, 120, 125, 0.19);
     svg {
-      width: 12px;
-      height: 12px;
+      width: 18px;
+      height: 18px;
     }
   }
   .content {
@@ -251,6 +251,7 @@ export default defineComponent({
         flex-shrink: 0;
         flex-grow: 0;
         width: 180px;
+        margin-left: 30px;
         .blue-bg {
           z-index: 1;
           position: absolute;

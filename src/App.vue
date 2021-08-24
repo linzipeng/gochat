@@ -55,6 +55,7 @@ export default defineComponent({
 * {
   margin: 0;
   padding: 0;
+  font-family: "Microsoft YaHei", PingFangSC-Regular, sans-serif;
 }
 
 html,
@@ -75,7 +76,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #82798f;
+  background: rgba(130, 121, 143, 0.3);
   border-radius: 5px;
 }
 
@@ -211,6 +212,7 @@ body {
   }
   .nothing:hover {
     background-color: inherit !important;
+    cursor: inherit;
   }
 }
 

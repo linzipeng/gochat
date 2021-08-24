@@ -155,7 +155,7 @@
             v-if="isAnchor && !showEquipmentCheck"
             @click="updateMedia('music')"
           >
-            <icon name="icon_setting_music" style="transform: scale(0.8)"></icon
+            <icon name="icon_music"></icon
             ><br />
             <div>背景音</div>
           </div>
@@ -1108,6 +1108,7 @@ export default defineComponent({
       margin-right: 5px;
       width: 16px;
       height: 15px;
+      color: #E0DDE3;
     }
   }
 
@@ -1148,7 +1149,7 @@ export default defineComponent({
         text-align: center;
         &:hover {
           svg {
-            color: #966cfa;
+            color: #9f76ff;
           }
           div {
             color: #9f76ff;
@@ -1185,6 +1186,7 @@ export default defineComponent({
         position: relative;
         overflow: hidden;
         margin-right: 6px;
+        border-radius: 4px;
       }
       .audience-box {
         width: 21.4%;

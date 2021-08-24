@@ -279,7 +279,7 @@ export default defineComponent({
       .voice {
         display: flex;
         align-items: center;
-        margin-top: 26px;
+        margin-top: 6px;
         margin-bottom: 26px;
         width: 256px;
         .voice-img {

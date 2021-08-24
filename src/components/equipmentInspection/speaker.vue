@@ -252,7 +252,7 @@ export default defineComponent({
 .speak-box {
   display: flex;
   flex-direction: column;
-  margin-top: 24px;
+  margin-top: 22px;
   .box-item {
     display: flex;
     align-items: center;
@@ -280,7 +280,8 @@ export default defineComponent({
       .voice {
         display: flex;
         align-items: center;
-        margin: 17px 0;
+        margin-top: 7px;
+        margin-bottom: 17px;
         .voice-img {
           margin-right: 21px;
           background-image: url("../../assets/mediaicon/play-music.svg");

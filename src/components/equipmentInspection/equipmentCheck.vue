@@ -476,7 +476,7 @@ export default defineComponent({
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             width: 60px;
             height: 56px;
             .img-icon {

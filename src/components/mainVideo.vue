@@ -329,7 +329,7 @@ export default defineComponent({
               isAnchor.value ? "publishQualityUpdate" : "playQualityUpdate",
               (streamID: string, stats: ZegoPlayStats) => {
                 if (streamId.value === streamID) {
-                  qualityState.value.frames = `${stats.video.frameWidth} × ${stats.video.frameHeight} p`;
+                  qualityState.value.frames = `${stats.video.frameHeight} p`;
                   qualityState.value.bitrate = `${(
                     stats.video.videoBitrate + stats.audio.audioBitrate
                   ).toFixed(0)} kbs`;
@@ -436,6 +436,7 @@ export default defineComponent({
   filter: blur(15px);
   padding: 1rem;
   box-sizing: border-box;
+  transform: scale(1.3);
 }
 .mute-guest {
   width: 40%;
@@ -507,6 +508,7 @@ export default defineComponent({
   &:hover {
     .anchor-operate-audience {
       display: inline-block;
+      cursor: pointer;
       z-index: 100;
     }
   }
@@ -524,21 +526,6 @@ export default defineComponent({
       border-radius: 4px;
       color: #ffffff;
     }
-    .operator-positon {
-      width: 80px;
-      padding: 6px 0 !important;
-      .el-dropdown-menu__item {
-        font-size: 12px;
-        color: #e0dde3;
-        margin: 0 4px;
-        padding: 0 8px;
-        border-radius: 4px;
-        height: 32px;
-        svg {
-          padding-right: 2px;
-        }
-      }
-    }
   }
   .attendee-name {
     position: absolute;
@@ -555,6 +542,22 @@ export default defineComponent({
     z-index: 10;
   }
 }
+.operator-positon {
+  padding: 6px 0 !important;
+  .el-dropdown-menu__item {
+    width: 92px;
+    font-size: 12px;
+    color: #e0dde3;
+    margin: 0 4px;
+    padding: 0 8px;
+    border-radius: 4px;
+    height: 32px;
+    box-sizing: border-box !important;
+    svg {
+      padding-right: 2px;
+    }
+  }
+}
 .attendee-mic {
   position: absolute;
   right: 8px;
@@ -564,11 +567,13 @@ export default defineComponent({
   width: 22px;
   height: 22px;
   z-index: 10;
+  text-align: center;
+  line-height: 22px;
   .icon {
-    width: 22px;
-    height: 20px;
     margin-bottom: 3px;
     color: #e0dde3;
+    vertical-align: middle;
+    font-size: 12px;
   }
 }
 .main-video {

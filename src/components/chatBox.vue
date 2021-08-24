@@ -343,14 +343,15 @@ export default defineComponent({
   box-sizing: border-box;
   background: #302045;
   .anthor-tab {
-    width: 28px;
     height: 14px;
     background: #9F76FF;
     border-radius: 2px;
     line-height: 14px;
-    font-size: 10px;
-    padding: 0 4px;
+    font-size: 12px;
+    padding: 2px 6px;
+    display: inline-block;
     color: #E0DDE3;
+    transform: scale(0.85);
   }
   .online-item {
     display: flex;
@@ -363,7 +364,7 @@ export default defineComponent({
       font-size: 14px;
     }
     .onstage {
-      color: #a653ff;
+      color: #9F76FF;
     }
     .invite-btn {
       border-radius: 15px;
@@ -394,18 +395,15 @@ export default defineComponent({
       .el-tabs__active-bar {
         background-color: #9F76FF;
         height: 3px;
+        width: 32px !important;
+        margin-left: 54px;
+        margin-bottom: 2px;
       }
       .el-tabs__item {
         text-align: center;
         color: #aca5b4;
         width: 50%;
         font-size: 16px;
-        &:nth-child(2) {
-          padding: 0 60px !important;
-        }
-        &:nth-child(3) {
-          padding: 0 35px !important;
-        }
       }
     }
     .el-tabs__content {
@@ -445,6 +443,7 @@ export default defineComponent({
             max-width: 266px;
             box-sizing: border-box;
             position: relative;
+            text-align: left;
             .loading-icon {
               @keyframes loading {
                 0% {

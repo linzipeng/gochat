@@ -258,7 +258,7 @@ export default defineComponent({
 }
 
 .about-icon {
-  margin-right: 12px;
+  margin-right: 14px;
 }
 
 .create-room-message {
@@ -272,15 +272,6 @@ export default defineComponent({
   .el-message-box__content {
     padding: 0;
   }
-  input {
-    border-color: rgba(255, 255, 255, 0.2) !important;
-  }
-  .invalid > input {
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    &:focus {
-      border-color: rgba(255, 255, 255, 0.1) !important;
-    }
-  }
   .el-message-box__errormsg {
     display: none;
   }
@@ -292,6 +283,9 @@ export default defineComponent({
     color: #e0dde3;
     font-size: 16px;
     border-radius: 0px;
+    &:focus {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
     &::placeholder {
       color: #82798f;
     }
@@ -300,7 +294,7 @@ export default defineComponent({
     height: 18px;
     border-bottom: 1px solid rgba(121, 120, 125, 0.19);
     .el-message-box__close {
-      color: #d8d8d8;
+      color: rgba(255, 255, 255, 0.4);
       font-size: 18px;
       &:hover {
         color: #9f76ff !important;
@@ -328,6 +322,7 @@ export default defineComponent({
     border-radius: 44px;
     height: 40px;
     margin-top: 31px;
+    font-size: 14px !important;
   }
 }
 
